@@ -1,0 +1,11 @@
+[package]
+name = "vga"
+version = "0.1.0"
+authors = ["Juuso Tuononen <jutuon@outlook.com>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+bitflags = "1.0"
+enum-tryfrom = "0.2.1"
+enum-tryfrom-derive = "0.2.1"
