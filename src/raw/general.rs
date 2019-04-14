@@ -105,17 +105,9 @@ bitflags! {
 declare_register_type!(VideoSubsystemEnableRegister);
 
 impl VideoSubsystemEnableRegister {
-    const VIDEO_SUBSYSTEM_ENABLE_BIT: u8 = 0b0000_0001;
-
-    pub fn video_subsystem_enable(&self) -> bool {
-        self.0 & Self::VIDEO_SUBSYSTEM_ENABLE_BIT == Self::VIDEO_SUBSYSTEM_ENABLE_BIT
-    }
-
-    pub fn set_video_subsystem_enable(&mut self, value: bool) {
-        if value {
-            self.0 &= Self::VIDEO_SUBSYSTEM_ENABLE_BIT;
-        } else {
-            self.0 &= self.0 & !Self::VIDEO_SUBSYSTEM_ENABLE_BIT
-        }
-    }
+    register_boolean!(
+        video_subsystem_enable,
+        set_video_subsystem_enable,
+        0b0000_0001,
+    );
 }

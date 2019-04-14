@@ -63,18 +63,12 @@ impl EndHorizontalBlankingRegister {
         value.update_register_value(&mut self.0)
     }
 
-    const END_BLANKING_MASK: u8 = 0b0001_1111;
-
-    /// Part 1/2 of a 6-bit end horizontal blanking value.
-    pub fn end_blanking_bits_from_0_to_4(&self) -> u8 {
-        self.0 & Self::END_BLANKING_MASK
-    }
-
-    /// Set part 1/2 of a 6-bit end horizontal blanking value.
-    pub fn set_end_blanking_bits_from_0_to_4(&mut self, value: u8) {
-        remove_bits(&mut self.0, Self::END_BLANKING_MASK);
-        self.0 |= value & Self::END_BLANKING_MASK;
-    }
+    simple_register_value!(
+        end_blanking_bits_from_0_to_4,
+        set_end_blanking_bits_from_0_to_4,
+        0b0001_1111,
+        "Part 1/2 of a 6-bit end horizontal blanking value."
+    );
 }
 
 #[repr(u8)]
@@ -120,18 +114,12 @@ impl EndHorizontalRetraceRegister {
         value.update_register_value(&mut self.0)
     }
 
-    const END_HORIZONTAL_RETRACE_MASK: u8 = 0b0001_1111;
-
-    /// A 5-bit value.
-    pub fn end_horizontal_retrace(&mut self) -> u8 {
-        self.0 & Self::END_HORIZONTAL_RETRACE_MASK
-    }
-
-    /// A 5-bit value.
-    pub fn set_end_horizontal_retrace(&mut self, value: u8) {
-        remove_bits(&mut self.0, Self::END_HORIZONTAL_RETRACE_MASK);
-        self.0 |= value & Self::END_HORIZONTAL_RETRACE_MASK;
-    }
+    simple_register_value!(
+        end_horizontal_retrace,
+        set_end_horizontal_retrace,
+        0b0001_1111,
+        "A 5-bit value."
+    );
 }
 
 /// Part 1/2 of a 10-bit vertical total value.
@@ -223,18 +211,12 @@ impl OverflowRegister {
 declare_register_type!(PresetRowScanRegister, PresetRowScanRegisterFlags);
 
 impl PresetRowScanRegister {
-    const STARTING_ROW_SCAN_COUNT_MASK: u8 = 0b0001_1111;
-
-    /// A 5-bit value.
-    pub fn starting_row_scan_count(&self) -> u8 {
-        self.0 & Self::STARTING_ROW_SCAN_COUNT_MASK
-    }
-
-    /// A 5-bit value.
-    pub fn set_starting_row_scan_count(&mut self, value: u8) {
-        remove_bits(&mut self.0, Self::STARTING_ROW_SCAN_COUNT_MASK);
-        self.0 |= value & Self::STARTING_ROW_SCAN_COUNT_MASK;
-    }
+    simple_register_value!(
+        starting_row_scan_count,
+        set_starting_row_scan_count,
+        0b0001_1111,
+        "A 5-bit value."
+    );
 }
 
 bitflags! {
