@@ -281,3 +281,174 @@ impl CursorStartRegister {
         "A 5-bit value."
     );
 }
+
+declare_register_type!(CursorEndRegister);
+
+impl CursorEndRegister {
+    pub fn cursor_skew_control(&self) -> SkewControl {
+        SkewControl::from_register_value(self.0).unwrap()
+    }
+
+    pub fn set_cursor_skew_control(&mut self, value: SkewControl) {
+        value.update_register_value(&mut self.0)
+    }
+
+    simple_register_value!(
+        row_scan_cursor_ends,
+        set_row_scan_cursor_ends,
+        0b0001_1111,
+    );
+}
+
+declare_register_type!(StartAddressHighRegister);
+
+impl StartAddressHighRegister {
+    pub fn start_address_bits_from_8_to_15(&self) -> u16 {
+        (self.0 as u16) << 8
+    }
+
+    pub fn set_start_address_bits_from_8_to_15(&mut self, value: u16) {
+        self.0 = (value >> 8) as u8;
+    }
+}
+
+declare_register_type!(StartAddressLowRegister);
+
+impl StartAddressLowRegister {
+    pub fn start_address_bits_from_0_to_7(&self) -> u16 {
+        self.0 as u16
+    }
+
+    pub fn set_start_address_bits_from_0_to_7(&mut self, value: u16) {
+        self.0 = value as u8;
+    }
+}
+
+declare_register_type!(CursorLocationHighRegister);
+
+impl CursorLocationHighRegister {
+    pub fn cursor_location_bits_from_8_to_15(&self) -> u16 {
+        (self.0 as u16) << 8
+    }
+
+    pub fn set_cursor_location_bits_from_8_to_15(&mut self, value: u16) {
+        self.0 = (value >> 8) as u8;
+    }
+}
+
+declare_register_type!(CursorLocationLowRegister);
+
+impl CursorLocationLowRegister {
+    pub fn cursor_location_bits_from_0_to_7(&self) -> u16 {
+        self.0 as u16
+    }
+
+    pub fn set_cursor_location_bits_from_0_to_7(&mut self, value: u16) {
+        self.0 = value as u8;
+    }
+}
+
+declare_register_type!(VerticalRetraceStartRegister);
+
+impl VerticalRetraceStartRegister {
+    /// A 9-bit value.
+    pub fn vertical_retrace_start_bits_from_0_to_7(&self) -> u16 {
+        self.0 as u16
+    }
+
+    /// A 9-bit value.
+    pub fn set_vertical_retrace_start_bits_from_0_to_7(&mut self, value: u16) {
+        self.0 = value as u8;
+    }
+}
+
+declare_register_type!(VerticalRetraceEndRegister, VerticalRetraceEndRegisterFlags);
+
+impl VerticalRetraceEndRegister {
+    simple_register_value!(
+        vertical_retrace_end,
+        set_vertical_retrace_end,
+        0b0000_1111,
+        "A 4-bit value."
+    );
+}
+
+bitflags! {
+    pub struct VerticalRetraceEndRegisterFlags: u8 {
+        const PROTECT_REGISTERS_FROM_0_TO_7 = 0b1000_0000;
+        const SELECT_5_REFRESH_CYCLES = 0b0100_0000;
+        const ENABLE_VERTICAL_INTERRUPT = 0b0010_0000;
+        const CLEAR_VERTICAL_INTERRUPT = 0b0001_0000;
+    }
+}
+
+declare_register_type!(VerticalDisplayEnableEndRegister);
+
+impl VerticalDisplayEnableEndRegister {
+    /// Part 1/2 of a 10-bit value.
+    pub fn vertical_display_enable_end_bits_from_0_to_7(&self) -> u16 {
+        self.0 as u16
+    }
+
+    /// Part 1/2 of a 10-bit value.
+    pub fn set_vertical_display_enable_end_bits_from_0_to_7(&mut self, value: u16) {
+        self.0 = value as u8
+    }
+}
+
+#[derive(Debug)]
+pub struct OffsetRegister(pub u8);
+
+declare_register_type!(UnderlineLocationRegister, UnderlineLocationRegisterFlags);
+
+bitflags! {
+    pub struct UnderlineLocationRegisterFlags: u8 {
+        const DOUBLE_WORD_MODE = 0b0100_0000;
+        const COUNT_BY_4 = 0b0010_0000;
+    }
+}
+
+declare_register_type!(StartVerticalBlankingRegister);
+
+impl StartVerticalBlankingRegister {
+    /// Part 1/3 of a 10-bit value.
+    pub fn start_vertical_blanking_bits_from_0_to_7(&self) -> u16 {
+        self.0 as u16
+    }
+
+    /// Part 1/3 of a 10-bit value.
+    pub fn set_start_vertical_blanking_bits_from_0_to_7(&mut self, value: u16) {
+        self.0 = value as u8
+    }
+}
+
+#[derive(Debug)]
+pub struct EndVerticalBlanking(pub u8);
+
+declare_register_type!(CrtModeControlRegister, CrtModeControlRegisterFlags);
+
+bitflags! {
+    pub struct CrtModeControlRegisterFlags: u8 {
+        const HARDWARE_RESET = 0b1000_0000;
+        const WORD_SLASH_BYTE_MODE = 0b0100_0000;
+        const ADDRESS_WRAP = 0b0010_0000;
+        const COUNT_BY_TWO = 0b0000_1000;
+        const HORIZONTAL_RETRACE_SELECT = 0b0000_0100;
+        const SELECT_ROW_SCAN_COUNTER = 0b0000_0010;
+        const CMS_0 = 0b0000_0001;
+    }
+}
+
+declare_register_type!(LineCompareRegister);
+
+impl LineCompareRegister {
+    /// Part 1/3 of a 10-bit value.
+    pub fn line_compare_target_bits_from_0_to_7(&self) -> u16 {
+        self.0 as u16
+    }
+
+    /// Part 1/3 of a 10-bit value.
+    pub fn set_line_compare_target_bits_from_0_to_7(&mut self, value: u16) {
+        self.0 = value as u8;
+    }
+}
