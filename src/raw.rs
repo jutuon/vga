@@ -81,6 +81,78 @@ macro_rules! register_boolean {
     };
 }
 
+macro_rules! register_enum {
+    ($getter_name:tt, $setter_name:tt, $name:ty, $($doc:expr),*) => {
+        $(
+            #[doc=$doc]
+        )*
+        pub fn $getter_name(&self) -> Result<$name, crate::raw::UnknownValue> {
+            $name::from_register_value(self.0)
+        }
+
+        $(
+            #[doc=$doc]
+        )*
+        pub fn $setter_name(&mut self, value: $name) {
+            value.update_register_value(&mut self.0)
+        }
+    };
+}
+
+macro_rules! register_enum_with_unwrap {
+    ($getter_name:tt, $setter_name:tt, $name:tt, $($doc:expr),*) => {
+        $(
+            #[doc=$doc]
+        )*
+        pub fn $getter_name(&self) -> $name {
+            $name::from_register_value(self.0).unwrap()
+        }
+
+        $(
+            #[doc=$doc]
+        )*
+        pub fn $setter_name(&mut self, value: $name) {
+            value.update_register_value(&mut self.0)
+        }
+    };
+}
+
+macro_rules! declare_register_enum {
+    (
+        $(
+            #[$enum_meta_item:meta]
+        )*
+        pub enum $name:ident {
+            $(
+                $(
+                    #[$variant_meta_item:meta]
+                )*
+                $variant_name:ident = $value:expr
+            ),+
+        }
+    ) => {
+        #[repr(u8)]
+        #[derive(Debug, TryFromPrimitive)]
+        #[TryFromPrimitiveType="u8"]
+        $(
+            #[$enum_meta_item]
+        )*
+        pub enum $name {
+            $(
+                $(
+                    #[$variant_meta_item]
+                )*
+                $variant_name = $value,
+            )*
+        }
+
+        impl_from_enum_for_u8!($name);
+
+        impl RegisterField for $name {
+            const ALL_BITS_ON_MASK: u8 = $( $value |)* 0;
+        }
+    };
+}
 
 pub mod general;
 pub mod sequencer;
