@@ -111,3 +111,46 @@ declare_register_enum!(
         Mode3 = 0b0000_0011,
     }
 );
+
+declare_register_type!(MiscellaneousRegister, MiscellaneousRegisterFlags);
+
+impl MiscellaneousRegister {
+    register_enum_with_unwrap!(
+        addressing_assignment,
+        set_addressing_assignment,
+        AddressingAssignment
+    );
+}
+
+bitflags! {
+    pub struct MiscellaneousRegisterFlags: u8 {
+        const ODD_SLASH_EVEN = 0b0000_0010;
+        const GRAPHICS_MODE = 0b0000_0001;
+    }
+}
+
+declare_register_enum!(
+    pub enum AddressingAssignment {
+        /// 0xA0000 for 128 KiB
+        Mode0 = 0b0000_0000,
+        /// 0xA0000 for 64 KiB
+        Mode1 = 0b0000_0100,
+        /// 0xB0000 for 32 KiB
+        Mode2 = 0b0000_1000,
+        /// 0xB8000 for 32 KiB
+        Mode3 = 0b0000_1100,
+    }
+);
+
+
+declare_register_type!(ColorDoNotCareRegister, MapFlags);
+
+declare_register_type!(BitMaskRegister);
+
+impl BitMaskRegister {
+    register_value!(
+        bit_mask,
+        set_bit_mask,
+        u8
+    );
+}
