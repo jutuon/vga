@@ -63,11 +63,11 @@ impl EndHorizontalBlankingRegister {
         value.update_register_value(&mut self.0)
     }
 
-    simple_register_value!(
+    register_value!(
+        /// Part 1/2 of a 6-bit end horizontal blanking value.
         end_blanking_bits_from_0_to_4,
         set_end_blanking_bits_from_0_to_4,
         0b0001_1111,
-        "Part 1/2 of a 6-bit end horizontal blanking value."
     );
 }
 
@@ -114,11 +114,11 @@ impl EndHorizontalRetraceRegister {
         value.update_register_value(&mut self.0)
     }
 
-    simple_register_value!(
+    register_value!(
+        /// A 5-bit value.
         end_horizontal_retrace,
         set_end_horizontal_retrace,
         0b0001_1111,
-        "A 5-bit value."
     );
 }
 
@@ -211,11 +211,11 @@ impl OverflowRegister {
 declare_register_type!(PresetRowScanRegister, PresetRowScanRegisterFlags);
 
 impl PresetRowScanRegister {
-    simple_register_value!(
+    register_value!(
+        /// A 5-bit value.
         starting_row_scan_count,
         set_starting_row_scan_count,
         0b0001_1111,
-        "A 5-bit value."
     );
 }
 
@@ -257,11 +257,11 @@ impl MaximumScanLineRegister {
         self.0 |= extract_bit_from_u16(value, BitIndexU16::I9, BitIndexU8::I5);
     }
 
-    simple_register_value!(
+    register_value!(
+        /// A 5-bit value.
         maximum_scan_line,
         set_maximum_scan_line,
         0b0001_1111,
-        "A 5-bit value."
     );
 }
 
@@ -274,11 +274,11 @@ impl CursorStartRegister {
         0b0010_0000,
     );
 
-    simple_register_value!(
+    register_value!(
+        /// A 5-bit value.
         row_scan_cursor_begins,
         set_row_scan_cursor_begins,
         0b0001_1111,
-        "A 5-bit value."
     );
 }
 
@@ -293,7 +293,7 @@ impl CursorEndRegister {
         value.update_register_value(&mut self.0)
     }
 
-    simple_register_value!(
+    register_value!(
         row_scan_cursor_ends,
         set_row_scan_cursor_ends,
         0b0001_1111,
@@ -365,11 +365,11 @@ impl VerticalRetraceStartRegister {
 declare_register_type!(VerticalRetraceEndRegister, VerticalRetraceEndRegisterFlags);
 
 impl VerticalRetraceEndRegister {
-    simple_register_value!(
+    register_value!(
+        /// A 4-bit value.
         vertical_retrace_end,
         set_vertical_retrace_end,
         0b0000_1111,
-        "A 4-bit value."
     );
 }
 

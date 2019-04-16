@@ -50,11 +50,11 @@ impl DataRotateRegister {
         value.update_register_value(&mut self.0)
     }
 
-    simple_register_value!(
+    register_value!(
+        /// A 3-bit value.
         rotate_count,
         set_rotate_count,
         0b0000_0111,
-        "A 3-bit value."
     );
 }
 

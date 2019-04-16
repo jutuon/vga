@@ -1,7 +1,10 @@
 
 
 macro_rules! declare_register_type {
-    ($name:tt) => {
+    ( $(#[doc=$text:literal] )* $name:ident $(,)?) => {
+        $(
+            #[doc=$text]
+        )*
         #[derive(Debug)]
         pub struct $name(u8);
 
@@ -15,8 +18,13 @@ macro_rules! declare_register_type {
             }
         }
     };
-    ($name:tt, $flags_type:tt) => {
-        declare_register_type!($name);
+    ( $(#[doc=$text:literal] )* $name:ident, $flags_type:ident $(,)?) => {
+        declare_register_type!(
+            $(
+                #[doc=$text]
+            )*
+            $name
+        );
 
         impl $name {
             pub fn flags(&self) -> $flags_type {
@@ -41,17 +49,17 @@ macro_rules! impl_from_enum_for_u8 {
     };
 }
 
-macro_rules! simple_register_value {
-    ($getter_name:tt, $setter_name:tt, $mask:expr, $($doc:expr),*) => {
+macro_rules! register_value {
+    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $mask:literal $(,)?) => {
         $(
-            #[doc=$doc]
+            #[doc=$text]
         )*
         pub fn $getter_name(&self) -> u8 {
             self.0 & $mask
         }
 
         $(
-            #[doc=$doc]
+            #[doc=$text]
         )*
         pub fn $setter_name(&mut self, value: u8) {
             crate::raw::remove_bits(&mut self.0, $mask);
@@ -61,16 +69,16 @@ macro_rules! simple_register_value {
 }
 
 macro_rules! register_boolean {
-    ($getter_name:tt, $setter_name:tt, $mask:expr, $($doc:expr),* ) => {
+    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $mask:literal $(,)?) => {
         $(
-            #[doc=$doc]
+            #[doc=$text]
         )*
         pub fn $getter_name(&self) -> bool {
             self.0 & $mask == $mask
         }
 
         $(
-            #[doc=$doc]
+            #[doc=$text]
         )*
         pub fn $setter_name(&mut self, value: bool) {
             crate::raw::remove_bits(&mut self.0, $mask);
@@ -82,18 +90,18 @@ macro_rules! register_boolean {
 }
 
 macro_rules! register_enum {
-    ($getter_name:tt, $setter_name:tt, $name:ty, $($doc:expr),*) => {
+    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $type_name:ty $(,)?) => {
         $(
-            #[doc=$doc]
+            #[doc=$text]
         )*
-        pub fn $getter_name(&self) -> Result<$name, crate::raw::UnknownValue> {
+        pub fn $getter_name(&self) -> Result<$type_name, crate::raw::UnknownValue> {
             $name::from_register_value(self.0)
         }
 
         $(
-            #[doc=$doc]
+            #[doc=$text]
         )*
-        pub fn $setter_name(&mut self, value: $name) {
+        pub fn $setter_name(&mut self, value: $type_name) {
             value.update_register_value(&mut self.0)
         }
     };
