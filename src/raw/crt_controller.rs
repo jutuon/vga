@@ -43,25 +43,44 @@ impl RegisterIndex {
     pub const LINE_COMPARE: u8 = 0x18;
 }
 
-#[derive(Debug)]
-pub struct HorizontalTotalRegister(pub u8);
+declare_register_type!(HorizontalTotalRegister);
 
-#[derive(Debug)]
-pub struct HorizontalDisplayEnableEndRegister(pub u8);
+impl HorizontalTotalRegister {
+    register_value!(
+        horizontal_total,
+        set_horizontal_total,
+        u8
+    );
+}
 
-#[derive(Debug)]
-pub struct StartHorizontalBlankingRegister(pub u8);
+declare_register_type!(HorizontalDisplayEnableEndRegister);
+
+impl HorizontalDisplayEnableEndRegister {
+    register_value!(
+        horizontal_display_enable_end,
+        set_horizontal_display_enable_end,
+        u8
+    );
+}
+
+declare_register_type!(StartHorizontalBlankingRegister);
+
+impl StartHorizontalBlankingRegister {
+    register_value!(
+        start_horizontal_blanking,
+        set_start_horizontal_blanking,
+        u8
+    );
+}
 
 declare_register_type!(EndHorizontalBlankingRegister);
 
 impl EndHorizontalBlankingRegister {
-    pub fn skew_control(&self) -> SkewControl {
-        SkewControl::from_register_value(self.0).unwrap()
-    }
-
-    pub fn set_skew_control(&mut self, value: SkewControl) {
-        value.update_register_value(&mut self.0)
-    }
+    register_enum_with_unwrap!(
+        skew_control,
+        set_skew_control,
+        SkewControl,
+    );
 
     register_value!(
         /// Part 1/2 of a 6-bit end horizontal blanking value.
@@ -71,24 +90,24 @@ impl EndHorizontalBlankingRegister {
     );
 }
 
-#[repr(u8)]
-#[derive(Debug, TryFromPrimitive)]
-#[TryFromPrimitiveType="u8"]
-pub enum SkewControl {
-    Zero = 0b0000_0000,
-    One = 0b0010_0000,
-    Two = 0b0100_0000,
-    Three = 0b0110_0000,
+declare_register_enum!(
+    pub enum SkewControl {
+        Zero = 0b0000_0000,
+        One = 0b0010_0000,
+        Two = 0b0100_0000,
+        Three = 0b0110_0000,
+    }
+);
+
+declare_register_type!(StartHorizontalRetracePulseRegister);
+
+impl StartHorizontalRetracePulseRegister {
+    register_value!(
+        start_horizontal_retrace_pulse,
+        set_start_horizontal_retrace_pulse,
+        u8
+    );
 }
-
-impl_from_enum_for_u8!(SkewControl);
-
-impl RegisterField for SkewControl {
-    const ALL_BITS_ON_MASK: u8 = 0b0110_0000;
-}
-
-#[derive(Debug)]
-pub struct StartHorizontalRetracePulseRegister(pub u8);
 
 declare_register_type!(EndHorizontalRetraceRegister);
 
@@ -106,13 +125,11 @@ impl EndHorizontalRetraceRegister {
         self.0 |= (value << 2) & Self::END_BLANKING_MASK;
     }
 
-    pub fn horizontal_retrace_delay(&self) -> SkewControl {
-        SkewControl::from_register_value(self.0).unwrap()
-    }
-
-    pub fn set_horizontal_retrace_delay(&mut self, value: SkewControl) {
-        value.update_register_value(&mut self.0)
-    }
+    register_enum_with_unwrap!(
+        horizontal_retrace_delay,
+        set_horizontal_retrace_delay,
+        SkewControl,
+    );
 
     register_value!(
         /// A 5-bit value.
@@ -125,13 +142,11 @@ impl EndHorizontalRetraceRegister {
 /// Part 1/2 of a 10-bit vertical total value.
 declare_register_type!(VerticalTotalRegister);
 impl VerticalTotalRegister {
-    pub fn vertical_total_bits_from_0_to_7(&self) -> u16 {
-        self.0 as u16
-    }
-
-    pub fn set_vertical_total_bits_from_0_to_7(&mut self, value: u16) {
-        self.0 = value as u8;
-    }
+    register_value!(
+        vertical_total_bits_from_0_to_7,
+        set_vertical_total_bits_from_0_to_7,
+        u16
+    );
 }
 
 declare_register_type!(OverflowRegister);
@@ -285,13 +300,11 @@ impl CursorStartRegister {
 declare_register_type!(CursorEndRegister);
 
 impl CursorEndRegister {
-    pub fn cursor_skew_control(&self) -> SkewControl {
-        SkewControl::from_register_value(self.0).unwrap()
-    }
-
-    pub fn set_cursor_skew_control(&mut self, value: SkewControl) {
-        value.update_register_value(&mut self.0)
-    }
+    register_enum_with_unwrap!(
+        cursor_skew_control,
+        set_cursor_skew_control,
+        SkewControl
+    );
 
     register_value!(
         row_scan_cursor_ends,
@@ -315,13 +328,11 @@ impl StartAddressHighRegister {
 declare_register_type!(StartAddressLowRegister);
 
 impl StartAddressLowRegister {
-    pub fn start_address_bits_from_0_to_7(&self) -> u16 {
-        self.0 as u16
-    }
-
-    pub fn set_start_address_bits_from_0_to_7(&mut self, value: u16) {
-        self.0 = value as u8;
-    }
+    register_value!(
+        start_address_bits_from_0_to_7,
+        set_start_address_bits_from_0_to_7,
+        u16
+    );
 }
 
 declare_register_type!(CursorLocationHighRegister);
@@ -339,27 +350,22 @@ impl CursorLocationHighRegister {
 declare_register_type!(CursorLocationLowRegister);
 
 impl CursorLocationLowRegister {
-    pub fn cursor_location_bits_from_0_to_7(&self) -> u16 {
-        self.0 as u16
-    }
-
-    pub fn set_cursor_location_bits_from_0_to_7(&mut self, value: u16) {
-        self.0 = value as u8;
-    }
+    register_value!(
+        cursor_location_bits_from_0_to_7,
+        set_cursor_location_bits_from_0_to_7,
+        u16
+    );
 }
 
 declare_register_type!(VerticalRetraceStartRegister);
 
 impl VerticalRetraceStartRegister {
-    /// A 9-bit value.
-    pub fn vertical_retrace_start_bits_from_0_to_7(&self) -> u16 {
-        self.0 as u16
-    }
-
-    /// A 9-bit value.
-    pub fn set_vertical_retrace_start_bits_from_0_to_7(&mut self, value: u16) {
-        self.0 = value as u8;
-    }
+    register_value!(
+        /// A 9-bit value.
+        vertical_retrace_start_bits_from_0_to_7,
+        set_vertical_retrace_start_bits_from_0_to_7,
+        u16
+    );
 }
 
 declare_register_type!(VerticalRetraceEndRegister, VerticalRetraceEndRegisterFlags);
@@ -385,19 +391,23 @@ bitflags! {
 declare_register_type!(VerticalDisplayEnableEndRegister);
 
 impl VerticalDisplayEnableEndRegister {
-    /// Part 1/2 of a 10-bit value.
-    pub fn vertical_display_enable_end_bits_from_0_to_7(&self) -> u16 {
-        self.0 as u16
-    }
-
-    /// Part 1/2 of a 10-bit value.
-    pub fn set_vertical_display_enable_end_bits_from_0_to_7(&mut self, value: u16) {
-        self.0 = value as u8
-    }
+    register_value!(
+        /// Part 1/2 of a 10-bit value.
+        vertical_display_enable_end_bits_from_0_to_7,
+        set_vertical_display_enable_end_bits_from_0_to_7,
+        u16
+    );
 }
 
-#[derive(Debug)]
-pub struct OffsetRegister(pub u8);
+declare_register_type!(OffsetRegister);
+
+impl OffsetRegister {
+    register_value!(
+        logical_line_width_of_the_screen,
+        set_logical_line_width_of_the_screen,
+        u8
+    );
+}
 
 declare_register_type!(UnderlineLocationRegister, UnderlineLocationRegisterFlags);
 
@@ -411,19 +421,23 @@ bitflags! {
 declare_register_type!(StartVerticalBlankingRegister);
 
 impl StartVerticalBlankingRegister {
-    /// Part 1/3 of a 10-bit value.
-    pub fn start_vertical_blanking_bits_from_0_to_7(&self) -> u16 {
-        self.0 as u16
-    }
-
-    /// Part 1/3 of a 10-bit value.
-    pub fn set_start_vertical_blanking_bits_from_0_to_7(&mut self, value: u16) {
-        self.0 = value as u8
-    }
+    register_value!(
+        /// Part 1/3 of a 10-bit value.
+        start_vertical_blanking_bits_from_0_to_7,
+        set_start_vertical_blanking_bits_from_0_to_7,
+        u16
+    );
 }
 
-#[derive(Debug)]
-pub struct EndVerticalBlanking(pub u8);
+declare_register_type!(EndVerticalBlanking);
+
+impl EndVerticalBlanking {
+    register_value!(
+        end_vertical_blanking,
+        set_end_vertical_blanking,
+        u8
+    );
+}
 
 declare_register_type!(CrtModeControlRegister, CrtModeControlRegisterFlags);
 
@@ -442,13 +456,10 @@ bitflags! {
 declare_register_type!(LineCompareRegister);
 
 impl LineCompareRegister {
-    /// Part 1/3 of a 10-bit value.
-    pub fn line_compare_target_bits_from_0_to_7(&self) -> u16 {
-        self.0 as u16
-    }
-
-    /// Part 1/3 of a 10-bit value.
-    pub fn set_line_compare_target_bits_from_0_to_7(&mut self, value: u16) {
-        self.0 = value as u8;
-    }
+    register_value!(
+        /// Part 1/3 of a 10-bit value.
+        line_compare_target_bits_from_0_to_7,
+        set_line_compare_target_bits_from_0_to_7,
+        u16
+    );
 }

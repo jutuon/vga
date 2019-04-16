@@ -3,7 +3,7 @@ use enum_tryfrom_derive::TryFromPrimitive;
 
 use core::convert::TryFrom;
 
-use super::{RegisterField, remove_bits, BitIndexU16, BitIndexU8, extract_bit_from_u8, extract_bit_from_u16};
+use super::{RegisterField};
 
 pub const ADDRESS_REGISTER: u16 = 0x03CE;
 pub const DATA_REGISTER: u16 = 0x03CF;
@@ -42,13 +42,11 @@ declare_register_type!(ColorCompareRegister, MapFlags);
 declare_register_type!(DataRotateRegister);
 
 impl DataRotateRegister {
-    pub fn function_select(&self) -> DataFunction {
-        DataFunction::from_register_value(self.0).unwrap()
-    }
-
-    pub fn set_function_select(&mut self, value: DataFunction) {
-        value.update_register_value(&mut self.0)
-    }
+    register_enum_with_unwrap!(
+        function_select,
+        set_function_select,
+        DataFunction,
+    );
 
     register_value!(
         /// A 3-bit value.
@@ -58,21 +56,14 @@ impl DataRotateRegister {
     );
 }
 
-#[repr(u8)]
-#[derive(Debug, TryFromPrimitive)]
-#[TryFromPrimitiveType="u8"]
-pub enum DataFunction {
-    Unmodified = 0b0000_0000,
-    And = 0b0000_1000,
-    Or = 0b0001_0000,
-    Xor = 0b0001_1000,
-}
-
-impl_from_enum_for_u8!(DataFunction);
-
-impl RegisterField for DataFunction {
-    const ALL_BITS_ON_MASK: u8 = 0b0001_1000;
-}
+declare_register_enum!(
+    pub enum DataFunction {
+        Unmodified = 0b0000_0000,
+        And = 0b0000_1000,
+        Or = 0b0001_0000,
+        Xor = 0b0001_1000,
+    }
+);
 
 declare_register_type!(ReadMapSelect);
 
@@ -84,21 +75,14 @@ impl ReadMapSelect {
     );
 }
 
-#[repr(u8)]
-#[derive(Debug, TryFromPrimitive)]
-#[TryFromPrimitiveType="u8"]
-pub enum MapSelect {
-    Map0 = 0b0000_0000,
-    Map1 = 0b0000_0001,
-    Map2 = 0b0000_0010,
-    Map3 = 0b0000_0011,
-}
-
-impl_from_enum_for_u8!(MapSelect);
-
-impl RegisterField for MapSelect {
-    const ALL_BITS_ON_MASK: u8 = 0b0000_0011;
-}
+declare_register_enum!(
+    pub enum MapSelect {
+        Map0 = 0b0000_0000,
+        Map1 = 0b0000_0001,
+        Map2 = 0b0000_0010,
+        Map3 = 0b0000_0011,
+    }
+);
 
 declare_register_type!(GraphicsModeRegister, GraphicsModeRegisterFlags);
 
@@ -119,18 +103,11 @@ impl GraphicsModeRegister {
     );
 }
 
-#[repr(u8)]
-#[derive(Debug, TryFromPrimitive)]
-#[TryFromPrimitiveType="u8"]
-pub enum WriteMode {
-    Mode0 = 0b0000_0000,
-    Mode1 = 0b0000_0001,
-    Mode2 = 0b0000_0010,
-    Mode3 = 0b0000_0011,
-}
-
-impl_from_enum_for_u8!(WriteMode);
-
-impl RegisterField for WriteMode {
-    const ALL_BITS_ON_MASK: u8 = 0b0000_0011;
-}
+declare_register_enum!(
+    pub enum WriteMode {
+        Mode0 = 0b0000_0000,
+        Mode1 = 0b0000_0001,
+        Mode2 = 0b0000_0010,
+        Mode3 = 0b0000_0011,
+    }
+);

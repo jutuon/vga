@@ -4,7 +4,7 @@ use enum_tryfrom_derive::TryFromPrimitive;
 
 use core::convert::TryFrom;
 
-use super::{UnknownValue, RegisterField};
+use super::{RegisterField};
 
 #[derive(Debug)]
 pub struct RegisterReadAddress;
@@ -31,55 +31,35 @@ impl RegisterWriteAddress {
 declare_register_type!(MiscellaneousOutputRegister, MiscellaneousOutputRegisterFlags);
 
 impl MiscellaneousOutputRegister {
-    pub fn vertical_size(&self) -> Result<VerticalSize, UnknownValue> {
-        VerticalSize::from_register_value(self.0)
+    register_enum!(
+        vertical_size,
+        set_vertical_size,
+        VerticalSize
+    );
+
+    register_enum!(
+        clock_select,
+        set_clock_select,
+        ClockSelect
+    );
+}
+
+declare_register_enum!(
+    pub enum VerticalSize {
+        Lines400 = 0b0100_0000,
+        Lines350 = 0b1000_0000,
+        Lines480 = 0b1100_0000,
     }
-
-    pub fn set_vertical_size(&mut self, value: VerticalSize) {
-        value.update_register_value(&mut self.0)
+);
+declare_register_enum!(
+    pub enum ClockSelect {
+        /// 25.175 MHz
+        Preset1 = 0b0000_0000,
+        /// 28.322 MHz
+        Preset2 = 0b0000_0100,
+        ExternalClock = 0b0000_1000,
     }
-
-    pub fn clock_select(&self) -> Result<ClockSelect, UnknownValue> {
-        ClockSelect::from_register_value(self.0)
-    }
-
-    pub fn set_clock_select(&mut self, value: ClockSelect) {
-        value.update_register_value(&mut self.0);
-    }
-}
-
-#[repr(u8)]
-#[derive(Debug, TryFromPrimitive)]
-#[TryFromPrimitiveType="u8"]
-pub enum VerticalSize {
-    Lines400 = 0b0100_0000,
-    Lines350 = 0b1000_0000,
-    Lines480 = 0b1100_0000,
-}
-
-impl_from_enum_for_u8!(VerticalSize);
-
-impl RegisterField for VerticalSize {
-    const ALL_BITS_ON_MASK: u8 = 0b1100_0000;
-}
-
-#[repr(u8)]
-#[derive(Debug, TryFromPrimitive)]
-#[TryFromPrimitiveType="u8"]
-pub enum ClockSelect {
-    /// 25.175 MHz
-    Preset1 = 0b0000_0000,
-    /// 28.322 MHz
-    Preset2 = 0b0000_0100,
-    ExternalClock = 0b0000_1000,
-}
-
-impl_from_enum_for_u8!(ClockSelect);
-
-impl RegisterField for ClockSelect {
-    const ALL_BITS_ON_MASK: u8 = 0b0000_1100;
-}
-
+);
 
 bitflags! {
     pub struct MiscellaneousOutputRegisterFlags: u8 {
@@ -88,10 +68,26 @@ bitflags! {
     }
 }
 
+declare_register_type!(InputStatusRegister0);
+
+impl InputStatusRegister0 {
+    pub fn flags(&self) -> InputStatusRegister0Flags {
+        InputStatusRegister0Flags::from_bits_truncate(self.0)
+    }
+}
+
 bitflags! {
     pub struct InputStatusRegister0Flags: u8 {
         const CRT_INTERRUPT = 0b1000_0000;
         const SWITCH_SENSE_BIT = 0b0001_0000;
+    }
+}
+
+declare_register_type!(InputStatusRegister1);
+
+impl InputStatusRegister1 {
+    pub fn flags(&self) -> InputStatusRegister1Flags {
+        InputStatusRegister1Flags::from_bits_truncate(self.0)
     }
 }
 

@@ -66,6 +66,21 @@ macro_rules! register_value {
             self.0 |= value & $mask;
         }
     };
+    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $type:ty $(,)?) => {
+        $(
+            #[doc=$text]
+        )*
+        pub fn $getter_name(&self) -> $type {
+            self.0 as $type
+        }
+
+        $(
+            #[doc=$text]
+        )*
+        pub fn $setter_name(&mut self, value: $type) {
+            self.0 = value as u8;
+        }
+    };
 }
 
 macro_rules! register_boolean {
@@ -90,12 +105,12 @@ macro_rules! register_boolean {
 }
 
 macro_rules! register_enum {
-    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $type_name:ty $(,)?) => {
+    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $type_name:ident $(,)?) => {
         $(
             #[doc=$text]
         )*
         pub fn $getter_name(&self) -> Result<$type_name, crate::raw::UnknownValue> {
-            $name::from_register_value(self.0)
+            $type_name::from_register_value(self.0)
         }
 
         $(
@@ -108,16 +123,16 @@ macro_rules! register_enum {
 }
 
 macro_rules! register_enum_with_unwrap {
-    ($getter_name:tt, $setter_name:tt, $name:tt, $($doc:expr),*) => {
+    ( $( #[doc=$text:literal] )* $getter_name:tt, $setter_name:tt, $name:tt $(,)? ) => {
         $(
-            #[doc=$doc]
+            #[doc=$text]
         )*
         pub fn $getter_name(&self) -> $name {
             $name::from_register_value(self.0).unwrap()
         }
 
         $(
-            #[doc=$doc]
+            #[doc=$text]
         )*
         pub fn $setter_name(&mut self, value: $name) {
             value.update_register_value(&mut self.0)
@@ -128,27 +143,27 @@ macro_rules! register_enum_with_unwrap {
 macro_rules! declare_register_enum {
     (
         $(
-            #[$enum_meta_item:meta]
+            #[doc=$enum_text:literal]
         )*
         pub enum $name:ident {
             $(
                 $(
-                    #[$variant_meta_item:meta]
+                    #[doc=$variant_text:literal]
                 )*
-                $variant_name:ident = $value:expr
-            ),+
+                $variant_name:ident = $value:literal
+            ),+ $(,)?
         }
     ) => {
         #[repr(u8)]
         #[derive(Debug, TryFromPrimitive)]
         #[TryFromPrimitiveType="u8"]
         $(
-            #[$enum_meta_item]
+            #[doc=$enum_text]
         )*
         pub enum $name {
             $(
                 $(
-                    #[$variant_meta_item]
+                    #[doc=$variant_text]
                 )*
                 $variant_name = $value,
             )*

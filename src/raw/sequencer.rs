@@ -56,62 +56,44 @@ bitflags! {
 declare_register_type!(CharacterMapSelectRegister);
 
 impl CharacterMapSelectRegister {
-    pub fn character_map_a_select(&self) -> CharacterMapASelect {
-        CharacterMapASelect::from_register_value(self.0).unwrap()
+    register_enum_with_unwrap!(
+        character_map_a_select,
+        set_character_map_a_select,
+        CharacterMapASelect,
+    );
+
+    register_enum_with_unwrap!(
+        character_map_b_select,
+        set_character_map_b_select,
+        CharacterMapBSelect,
+    );
+}
+
+declare_register_enum!(
+    pub enum CharacterMapASelect {
+        Map0 = 0b0000_0000,
+        Map1 = 0b0000_0100,
+        Map2 = 0b0000_1000,
+        Map3 = 0b0000_1100,
+        Map4 = 0b0010_0000,
+        Map5 = 0b0010_0100,
+        Map6 = 0b0010_1000,
+        Map7 = 0b0010_1100
     }
+);
 
-    pub fn character_map_b_select(&self) -> CharacterMapBSelect {
-        CharacterMapBSelect::from_register_value(self.0).unwrap()
+declare_register_enum!(
+    pub enum CharacterMapBSelect {
+        Map0 = 0b0000_0000,
+        Map1 = 0b0000_0001,
+        Map2 = 0b0000_0010,
+        Map3 = 0b0000_0011,
+        Map4 = 0b0001_0000,
+        Map5 = 0b0001_0001,
+        Map6 = 0b0001_0010,
+        Map7 = 0b0001_0011
     }
-
-    pub fn set_character_map_a_select(&mut self, value: CharacterMapASelect) {
-        value.update_register_value(&mut self.0)
-    }
-
-    pub fn set_character_map_b_select(&mut self, value: CharacterMapASelect) {
-        value.update_register_value(&mut self.0)
-    }
-}
-
-#[repr(u8)]
-#[derive(Debug, TryFromPrimitive)]
-#[TryFromPrimitiveType="u8"]
-pub enum CharacterMapASelect {
-    Map0 = 0b0000_0000,
-    Map1 = 0b0000_0100,
-    Map2 = 0b0000_1000,
-    Map3 = 0b0000_1100,
-    Map4 = 0b0010_0000,
-    Map5 = 0b0010_0100,
-    Map6 = 0b0010_1000,
-    Map7 = 0b0010_1100
-}
-
-impl_from_enum_for_u8!(CharacterMapASelect);
-
-impl RegisterField for CharacterMapASelect {
-    const ALL_BITS_ON_MASK: u8 = 0b0010_1100;
-}
-
-#[repr(u8)]
-#[derive(Debug, TryFromPrimitive)]
-#[TryFromPrimitiveType="u8"]
-pub enum CharacterMapBSelect {
-    Map0 = 0b0000_0000,
-    Map1 = 0b0000_0001,
-    Map2 = 0b0000_0010,
-    Map3 = 0b0000_0011,
-    Map4 = 0b0001_0000,
-    Map5 = 0b0001_0001,
-    Map6 = 0b0001_0010,
-    Map7 = 0b0001_0011
-}
-
-impl_from_enum_for_u8!(CharacterMapBSelect);
-
-impl RegisterField for CharacterMapBSelect {
-    const ALL_BITS_ON_MASK: u8 = 0b0001_0011;
-}
+);
 
 declare_register_type!(MemoryModeRegister, MemoryModeRegisterFlags);
 
