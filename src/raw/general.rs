@@ -6,27 +6,18 @@ use core::convert::TryFrom;
 
 use super::{RegisterField};
 
-#[derive(Debug)]
-pub struct RegisterReadAddress;
+pub const READ_MISCELLANEOUS_OUTPUT: u16 = 0x03CC;
+pub const READ_INPUT_STATUS_0: u16 = 0x03C2;
+pub const READ_INPUT_STATUS_1_IO_SELECT_OFF: u16 = 0x03BA;
+pub const READ_INPUT_STATUS_1_IO_SELECT_ON: u16 = 0x03DA;
+pub const READ_FEATURE_CONTROL_REGISTER: u16 = 0x03CA;
+pub const READ_VIDEO_SUBSYSTEM_ENABLE_REGISTER: u16 = 0x03C3;
 
-impl RegisterReadAddress {
-    pub const MISCELLANEOUS_OUTPUT: u16 = 0x03CC;
-    pub const INPUT_STATUS_0: u16 = 0x03C2;
-    pub const INPUT_STATUS_1_IO_SELECT_OFF: u16 = 0x03BA;
-    pub const INPUT_STATUS_1_IO_SELECT_ON: u16 = 0x03DA;
-    pub const FEATURE_CONTROL_REGISTER: u16 = 0x03CA;
-    pub const VIDEO_SUBSYSTEM_ENABLE_REGISTER: u16 = 0x03C3;
-}
+pub const WRITE_MISCELLANEOUS_OUTPUT: u16 = 0x03C2;
+pub const WRITE_FEATURE_CONTROL_REGISTER_IO_SELECT_OFF: u16 = 0x03BA;
+pub const WRITE_FEATURE_CONTROL_REGISTER_IO_SELECT_ON: u16 = 0x03DA;
+pub const WRITE_VIDEO_SUBSYSTEM_ENABLE_REGISTER: u16 = 0x03C3;
 
-#[derive(Debug)]
-pub struct RegisterWriteAddress;
-
-impl RegisterWriteAddress {
-    pub const MISCELLANEOUS_OUTPUT: u16 = 0x03C2;
-    pub const FEATURE_CONTROL_REGISTER_IO_SELECT_OFF: u16 = 0x03BA;
-    pub const FEATURE_CONTROL_REGISTER_IO_SELECT_ON: u16 = 0x03DA;
-    pub const VIDEO_SUBSYSTEM_ENABLE_REGISTER: u16 = 0x03C3;
-}
 
 declare_register_type!(MiscellaneousOutputRegister, MiscellaneousOutputRegisterFlags);
 
