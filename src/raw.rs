@@ -37,6 +37,32 @@ macro_rules! declare_register_type {
             }
         }
     };
+    ( $( #[doc=$text:literal] )* $name:ident, $index:literal $(,)?) => {
+        declare_register_type!(
+            $(
+                #[doc=$text]
+            )*
+            $name
+        );
+
+        impl $name {
+            pub const INDEX: u8 = $index;
+        }
+    };
+    ( $(#[doc=$text:literal] )* $name:ident, $flags_type:ident, $index:literal $(,)?) => {
+        declare_register_type!(
+            $(
+                #[doc=$text]
+            )*
+            $name,
+            $flags_type,
+        );
+
+        impl $name {
+            pub const INDEX: u8 = $index;
+        }
+    };
+
 }
 
 macro_rules! impl_from_enum_for_u8 {

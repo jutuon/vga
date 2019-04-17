@@ -10,18 +10,17 @@ use super::{RegisterField};
 pub const ADDRESS_REGISTER: u16 = 0x03C4;
 pub const DATA_REGISTER: u16 = 0x03C5;
 
-#[derive(Debug)]
-pub struct RegisterIndex;
+declare_register_type!(SequencerAddressRegister);
 
-impl RegisterIndex {
-    pub const RESET: u8 = 0x00;
-    pub const CLOCKING_MODE: u8 = 0x01;
-    pub const MAP_MASK: u8 = 0x02;
-    pub const CHARACTER_MAP_SELECT: u8 = 0x03;
-    pub const MEMORY_MODE: u8 = 0x04;
+impl SequencerAddressRegister {
+    register_value!(
+        sequencer_address,
+        set_sequencer_address,
+        0b0000_0111,
+    );
 }
 
-declare_register_type!(ResetRegister, ResetRegisterFlags);
+declare_register_type!(ResetRegister, ResetRegisterFlags, 0x00);
 
 bitflags! {
     pub struct ResetRegisterFlags: u8 {
@@ -30,7 +29,7 @@ bitflags! {
     }
 }
 
-declare_register_type!(ClockingModeRegister, ClockingModeRegisterFlags);
+declare_register_type!(ClockingModeRegister, ClockingModeRegisterFlags, 0x01);
 
 bitflags! {
     pub struct ClockingModeRegisterFlags: u8 {
@@ -42,7 +41,7 @@ bitflags! {
     }
 }
 
-declare_register_type!(MapMaskRegister, MapMaskRegisterFlags);
+declare_register_type!(MapMaskRegister, MapMaskRegisterFlags, 0x02);
 
 bitflags! {
     pub struct MapMaskRegisterFlags: u8 {
@@ -53,7 +52,7 @@ bitflags! {
     }
 }
 
-declare_register_type!(CharacterMapSelectRegister);
+declare_register_type!(CharacterMapSelectRegister, 0x03);
 
 impl CharacterMapSelectRegister {
     register_enum_with_unwrap!(
@@ -95,7 +94,7 @@ declare_register_enum!(
     }
 );
 
-declare_register_type!(MemoryModeRegister, MemoryModeRegisterFlags);
+declare_register_type!(MemoryModeRegister, MemoryModeRegisterFlags, 0x04);
 
 bitflags! {
     pub struct MemoryModeRegisterFlags: u8 {
