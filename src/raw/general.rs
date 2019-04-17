@@ -89,6 +89,8 @@ bitflags! {
     }
 }
 
+declare_register_type!(FeatureControlRegister);
+
 declare_register_type!(VideoSubsystemEnableRegister);
 
 impl VideoSubsystemEnableRegister {
