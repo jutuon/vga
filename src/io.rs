@@ -133,13 +133,12 @@ pub trait PortIo {
         SequencerPorts +
         DacPorts;
 
-    fn read(&self, port: Self::PortId) -> u8;
+    fn read(&mut self, port: Self::PortId) -> u8;
     fn write(&mut self, port: Self::PortId, data: u8);
 }
 
 /// You should only use this trait for debugging purposes.
 pub trait PortIoAvailable<T: PortIo> {
-    fn port_io(&self) -> &T;
     fn port_io_mut(&mut self) -> &mut T;
 }
 
@@ -147,6 +146,16 @@ macro_rules! port {
     ($port_io_type:ident :: $port_trait:ident :: $port_name:ident) => {
         {
             <<$port_io_type as $crate::io::PortIo>::PortId as $crate::io::$port_trait>::$port_name
+        }
+    };
+}
+
+macro_rules! impl_port_io_available {
+    (<T: PortIo> $type:ty) => {
+        impl<T: PortIo> crate::io::PortIoAvailable<T> for $type {
+            fn port_io_mut(&mut self) -> &mut T {
+                &mut self.0
+            }
         }
     };
 }

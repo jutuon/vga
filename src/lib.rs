@@ -11,4 +11,6 @@
 #![forbid(missing_debug_implementations, unsafe_code)]
 
 pub mod raw;
+#[macro_use]
 pub mod io;
+pub mod driver;
