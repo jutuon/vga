@@ -11,39 +11,17 @@ pub const ADDRESS_REGISTER_IO_SELECT_ON: u16 = 0x03D4;
 pub const DATA_REGISTER_IO_SELECT_OFF: u16 = 0x03B5;
 pub const DATA_REGISTER_IO_SELECT_ON: u16 = 0x03D5;
 
+declare_register_type!(CrtAddressRegister);
 
-#[derive(Debug)]
-pub struct RegisterIndex;
-
-impl RegisterIndex {
-    pub const HORIZONTAL_TOTAL: u8 = 0x00;
-    pub const HORIZONTAL_DISPLAY_ENABLE_END: u8 = 0x01;
-    pub const START_HORIZONTAL_BLANKING: u8 = 0x02;
-    pub const END_HORIZONTAL_BLANKING: u8 = 0x03;
-    pub const START_HORIZONTAL_RETRACE_PULSE: u8 = 0x04;
-    pub const END_HORIZONTAL_RETRACE: u8 = 0x05;
-    pub const VERTICAL_TOTAL: u8 = 0x06;
-    pub const OVERFLOW: u8 = 0x07;
-    pub const PRESET_ROW_SCAN: u8 = 0x08;
-    pub const MAXIMUM_SCAN_LINE: u8 = 0x09;
-    pub const CURSOR_START: u8 = 0x0A;
-    pub const CURSOR_END: u8 = 0x0B;
-    pub const START_ADDRESS_HIGH: u8 = 0x0C;
-    pub const START_ADDRESS_LOW: u8 = 0x0D;
-    pub const CURSOR_LOCATION_HIGH: u8 = 0x0E;
-    pub const CURSOR_LOCATION_LOW: u8 = 0x0F;
-    pub const VERTICAL_RETRACE_START: u8 = 0x10;
-    pub const VERTICAL_RETRACE_END: u8 = 0x11;
-    pub const VERTICAL_DISPLAY_ENABLE_END: u8 = 0x12;
-    pub const OFFSET: u8 = 0x13;
-    pub const UNDERLINE_LOCATION: u8 = 0x14;
-    pub const START_VERTICAL_BLANKING: u8 = 0x15;
-    pub const END_VERTICAL_BLANKING: u8 = 0x16;
-    pub const CRT_MODE_CONTROL: u8 = 0x17;
-    pub const LINE_COMPARE: u8 = 0x18;
+impl CrtAddressRegister {
+    register_value!(
+        crt_address,
+        set_crt_address,
+        0b0001_1111,
+    );
 }
 
-declare_register_type!(HorizontalTotalRegister);
+declare_register_type!(HorizontalTotalRegister, 0x00);
 
 impl HorizontalTotalRegister {
     register_value!(
@@ -53,7 +31,7 @@ impl HorizontalTotalRegister {
     );
 }
 
-declare_register_type!(HorizontalDisplayEnableEndRegister);
+declare_register_type!(HorizontalDisplayEnableEndRegister, 0x01);
 
 impl HorizontalDisplayEnableEndRegister {
     register_value!(
@@ -63,7 +41,7 @@ impl HorizontalDisplayEnableEndRegister {
     );
 }
 
-declare_register_type!(StartHorizontalBlankingRegister);
+declare_register_type!(StartHorizontalBlankingRegister, 0x02);
 
 impl StartHorizontalBlankingRegister {
     register_value!(
@@ -73,7 +51,7 @@ impl StartHorizontalBlankingRegister {
     );
 }
 
-declare_register_type!(EndHorizontalBlankingRegister);
+declare_register_type!(EndHorizontalBlankingRegister, 0x03);
 
 impl EndHorizontalBlankingRegister {
     register_enum_with_unwrap!(
@@ -99,7 +77,7 @@ declare_register_enum!(
     }
 );
 
-declare_register_type!(StartHorizontalRetracePulseRegister);
+declare_register_type!(StartHorizontalRetracePulseRegister, 0x04);
 
 impl StartHorizontalRetracePulseRegister {
     register_value!(
@@ -109,7 +87,7 @@ impl StartHorizontalRetracePulseRegister {
     );
 }
 
-declare_register_type!(EndHorizontalRetraceRegister);
+declare_register_type!(EndHorizontalRetraceRegister, 0x05);
 
 impl EndHorizontalRetraceRegister {
     const END_BLANKING_MASK: u8 = 0b1000_0000;
@@ -140,7 +118,7 @@ impl EndHorizontalRetraceRegister {
 }
 
 /// Part 1/2 of a 10-bit vertical total value.
-declare_register_type!(VerticalTotalRegister);
+declare_register_type!(VerticalTotalRegister, 0x06);
 impl VerticalTotalRegister {
     register_value!(
         vertical_total_bits_from_0_to_7,
@@ -149,7 +127,7 @@ impl VerticalTotalRegister {
     );
 }
 
-declare_register_type!(OverflowRegister);
+declare_register_type!(OverflowRegister, 0x07);
 
 impl OverflowRegister {
     /// Part 2/2 of a 10-bit value.
@@ -223,7 +201,7 @@ impl OverflowRegister {
     }
 }
 
-declare_register_type!(PresetRowScanRegister, PresetRowScanRegisterFlags);
+declare_register_type!(PresetRowScanRegister, PresetRowScanRegisterFlags, 0x08);
 
 impl PresetRowScanRegister {
     register_value!(
@@ -241,7 +219,7 @@ bitflags! {
     }
 }
 
-declare_register_type!(MaximumScanLineRegister);
+declare_register_type!(MaximumScanLineRegister, 0x09);
 
 impl MaximumScanLineRegister {
     register_boolean!(
@@ -280,7 +258,7 @@ impl MaximumScanLineRegister {
     );
 }
 
-declare_register_type!(CursorStartRegister);
+declare_register_type!(CursorStartRegister, 0x0A);
 
 impl CursorStartRegister {
     register_boolean!(
@@ -297,7 +275,7 @@ impl CursorStartRegister {
     );
 }
 
-declare_register_type!(CursorEndRegister);
+declare_register_type!(CursorEndRegister, 0x0B);
 
 impl CursorEndRegister {
     register_enum_with_unwrap!(
@@ -313,7 +291,7 @@ impl CursorEndRegister {
     );
 }
 
-declare_register_type!(StartAddressHighRegister);
+declare_register_type!(StartAddressHighRegister, 0x0C);
 
 impl StartAddressHighRegister {
     pub fn start_address_bits_from_8_to_15(&self) -> u16 {
@@ -325,7 +303,7 @@ impl StartAddressHighRegister {
     }
 }
 
-declare_register_type!(StartAddressLowRegister);
+declare_register_type!(StartAddressLowRegister, 0x0D);
 
 impl StartAddressLowRegister {
     register_value!(
@@ -335,7 +313,7 @@ impl StartAddressLowRegister {
     );
 }
 
-declare_register_type!(CursorLocationHighRegister);
+declare_register_type!(CursorLocationHighRegister, 0x0E);
 
 impl CursorLocationHighRegister {
     pub fn cursor_location_bits_from_8_to_15(&self) -> u16 {
@@ -347,7 +325,7 @@ impl CursorLocationHighRegister {
     }
 }
 
-declare_register_type!(CursorLocationLowRegister);
+declare_register_type!(CursorLocationLowRegister, 0x0F);
 
 impl CursorLocationLowRegister {
     register_value!(
@@ -357,7 +335,7 @@ impl CursorLocationLowRegister {
     );
 }
 
-declare_register_type!(VerticalRetraceStartRegister);
+declare_register_type!(VerticalRetraceStartRegister, 0x10);
 
 impl VerticalRetraceStartRegister {
     register_value!(
@@ -368,7 +346,7 @@ impl VerticalRetraceStartRegister {
     );
 }
 
-declare_register_type!(VerticalRetraceEndRegister, VerticalRetraceEndRegisterFlags);
+declare_register_type!(VerticalRetraceEndRegister, VerticalRetraceEndRegisterFlags, 0x11);
 
 impl VerticalRetraceEndRegister {
     register_value!(
@@ -388,7 +366,7 @@ bitflags! {
     }
 }
 
-declare_register_type!(VerticalDisplayEnableEndRegister);
+declare_register_type!(VerticalDisplayEnableEndRegister, 0x12);
 
 impl VerticalDisplayEnableEndRegister {
     register_value!(
@@ -399,7 +377,7 @@ impl VerticalDisplayEnableEndRegister {
     );
 }
 
-declare_register_type!(OffsetRegister);
+declare_register_type!(OffsetRegister, 0x13);
 
 impl OffsetRegister {
     register_value!(
@@ -409,7 +387,7 @@ impl OffsetRegister {
     );
 }
 
-declare_register_type!(UnderlineLocationRegister, UnderlineLocationRegisterFlags);
+declare_register_type!(UnderlineLocationRegister, UnderlineLocationRegisterFlags, 0x14);
 
 bitflags! {
     pub struct UnderlineLocationRegisterFlags: u8 {
@@ -418,7 +396,7 @@ bitflags! {
     }
 }
 
-declare_register_type!(StartVerticalBlankingRegister);
+declare_register_type!(StartVerticalBlankingRegister, 0x15);
 
 impl StartVerticalBlankingRegister {
     register_value!(
@@ -429,9 +407,9 @@ impl StartVerticalBlankingRegister {
     );
 }
 
-declare_register_type!(EndVerticalBlanking);
+declare_register_type!(EndVerticalBlankingRegister, 0x16);
 
-impl EndVerticalBlanking {
+impl EndVerticalBlankingRegister {
     register_value!(
         end_vertical_blanking,
         set_end_vertical_blanking,
@@ -439,7 +417,7 @@ impl EndVerticalBlanking {
     );
 }
 
-declare_register_type!(CrtModeControlRegister, CrtModeControlRegisterFlags);
+declare_register_type!(CrtModeControlRegister, CrtModeControlRegisterFlags, 0x17);
 
 bitflags! {
     pub struct CrtModeControlRegisterFlags: u8 {
@@ -453,7 +431,7 @@ bitflags! {
     }
 }
 
-declare_register_type!(LineCompareRegister);
+declare_register_type!(LineCompareRegister, 0x18);
 
 impl LineCompareRegister {
     register_value!(

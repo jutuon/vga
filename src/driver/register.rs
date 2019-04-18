@@ -4,6 +4,7 @@ use crate::io::PortIo;
 use crate::raw::{
     general::*,
     sequencer::*,
+    crt_controller::*,
 };
 
 #[derive(Debug)]
@@ -64,6 +65,45 @@ macro_rules! sequencer_register {
             self.write_sequencer_address(address);
 
             self.0.write(port!(T::SequencerPorts::DATA_REGISTER), value.value());
+        }
+    };
+}
+
+macro_rules! crt_register {
+    ($( #[doc=$text:literal] )* $read_method_name:ident, $write_method_name:ident, $register_type:ident $(,)?) => {
+        $(
+            #[doc=$text]
+        )*
+        pub fn $read_method_name(&mut self) -> $register_type {
+            let mut address = self.read_crt_address();
+            address.set_crt_address($register_type::INDEX);
+            self.write_crt_address(address);
+
+            let port = if self.io_select_address_enabled() {
+                port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_ON)
+            } else {
+                port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_OFF)
+            };
+
+            let raw = self.0.read(port);
+            $register_type::from_register_value(raw)
+        }
+
+        $(
+            #[doc=$text]
+        )*
+        pub fn $write_method_name(&mut self, value: $register_type) {
+            let mut address = self.read_crt_address();
+            address.set_crt_address($register_type::INDEX);
+            self.write_crt_address(address);
+
+            let port = if self.io_select_address_enabled() {
+                port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_ON)
+            } else {
+                port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_OFF)
+            };
+
+            self.0.write(port, value.value());
         }
     };
 }
@@ -165,5 +205,171 @@ impl <T: PortIo> RegisterHandler<T> {
         read_memory_mode,
         write_memory_mode,
         MemoryModeRegister,
+    );
+}
+
+impl <T: PortIo> RegisterHandler<T> {
+    pub fn read_crt_address(&mut self) -> CrtAddressRegister {
+        let port = if self.io_select_address_enabled() {
+            port!(T::CrtPorts::ADDRESS_REGISTER_IO_SELECT_ON)
+        } else {
+            port!(T::CrtPorts::ADDRESS_REGISTER_IO_SELECT_OFF)
+        };
+        let raw = self.0.read(port);
+        CrtAddressRegister::from_register_value(raw)
+    }
+
+    pub fn write_crt_address(&mut self, value: CrtAddressRegister) {
+        let port = if self.io_select_address_enabled() {
+            port!(T::CrtPorts::ADDRESS_REGISTER_IO_SELECT_ON)
+        } else {
+            port!(T::CrtPorts::ADDRESS_REGISTER_IO_SELECT_OFF)
+        };
+        self.0.write(port, value.value());
+    }
+
+    crt_register!(
+        read_horizontal_total,
+        write_horizontal_total,
+        HorizontalTotalRegister,
+    );
+
+    crt_register!(
+        read_horizontal_display_enable_end,
+        write_horizontal_display_enable_end,
+        HorizontalDisplayEnableEndRegister,
+    );
+
+    crt_register!(
+        read_start_horizontal_blanking,
+        write_start_horizontal_blanking,
+        StartHorizontalBlankingRegister,
+    );
+
+    crt_register!(
+        read_start_horizontal_retrace_pulse,
+        write_start_horizontal_retrace_pulse,
+        StartHorizontalRetracePulseRegister,
+    );
+
+    crt_register!(
+        read_end_horizontal_retrace,
+        write_end_horizontal_retrace,
+        EndHorizontalRetraceRegister,
+    );
+
+    crt_register!(
+        read_vertical_total,
+        write_vertical_total,
+        VerticalTotalRegister,
+    );
+
+    crt_register!(
+        read_overflow,
+        write_overflow,
+        OverflowRegister,
+    );
+
+    crt_register!(
+        read_preset_row_scan,
+        write_preset_row_scan,
+        PresetRowScanRegister,
+    );
+
+    crt_register!(
+        read_maximum_scan_line,
+        write_maximum_scan_line,
+        MaximumScanLineRegister,
+    );
+
+    crt_register!(
+        read_cursor_start,
+        write_cursor_start,
+        CursorStartRegister,
+    );
+
+    crt_register!(
+        read_cursor_end,
+        write_cursor_end,
+        CursorEndRegister,
+    );
+
+    crt_register!(
+        read_start_address_high,
+        write_start_address_high,
+        StartAddressHighRegister,
+    );
+
+    crt_register!(
+        read_start_address_low,
+        write_start_address_low,
+        StartAddressLowRegister,
+    );
+
+    crt_register!(
+        read_cursor_location_high,
+        write_cursor_location_high,
+        CursorLocationHighRegister,
+    );
+
+
+    crt_register!(
+        read_cursor_location_low,
+        write_cursor_location_low,
+        CursorLocationLowRegister,
+    );
+
+    crt_register!(
+        read_vertical_retrace_start,
+        write_vertical_retrace_start,
+        VerticalRetraceStartRegister,
+    );
+
+    crt_register!(
+        read_vertical_retrace_end,
+        write_vertical_retrace_end,
+        VerticalRetraceEndRegister,
+    );
+
+    crt_register!(
+        read_vertical_display_enable_end,
+        write_vertical_display_enable_end,
+        VerticalDisplayEnableEndRegister,
+    );
+
+    crt_register!(
+        read_offset,
+        write_offset,
+        OffsetRegister,
+    );
+
+    crt_register!(
+        read_underline_location,
+        write_underline_location,
+        UnderlineLocationRegister,
+    );
+
+    crt_register!(
+        read_start_vertical_blanking,
+        write_start_vertical_blanking,
+        StartVerticalBlankingRegister,
+    );
+
+    crt_register!(
+        read_end_vertical_blanking,
+        write_end_vertical_blanking,
+        EndVerticalBlankingRegister,
+    );
+
+    crt_register!(
+        read_crt_mode_control,
+        write_crt_mode_control,
+        CrtModeControlRegister,
+    );
+
+    crt_register!(
+        read_line_compare,
+        write_line_compare,
+        LineCompareRegister,
     );
 }
