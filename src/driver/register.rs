@@ -5,6 +5,7 @@ use crate::raw::{
     general::*,
     sequencer::*,
     crt_controller::*,
+    graphics_controller::*,
 };
 
 #[derive(Debug)]
@@ -371,5 +372,97 @@ impl <T: PortIo> RegisterHandler<T> {
         read_line_compare,
         write_line_compare,
         LineCompareRegister,
+    );
+}
+
+macro_rules! graphics_register {
+    ($( #[doc=$text:literal] )* $read_method_name:ident, $write_method_name:ident, $register_type:ident $(,)?) => {
+        $(
+            #[doc=$text]
+        )*
+        pub fn $read_method_name(&mut self) -> $register_type {
+            let mut address = self.read_graphics_address();
+            address.set_graphics_address($register_type::INDEX);
+            self.write_graphics_address(address);
+
+            let raw = self.0.read(port!(T::GraphicsPorts::DATA_REGISTER));
+            $register_type::from_register_value(raw)
+        }
+
+        $(
+            #[doc=$text]
+        )*
+        pub fn $write_method_name(&mut self, value: $register_type) {
+            let mut address = self.read_graphics_address();
+            address.set_graphics_address($register_type::INDEX);
+            self.write_graphics_address(address);
+
+            let port = port!(T::GraphicsPorts::DATA_REGISTER);
+
+            self.0.write(port, value.value());
+        }
+    };
+}
+
+impl <T: PortIo> RegisterHandler<T> {
+    read_write_register!(
+        read_graphics_address,
+        write_graphics_address,
+        GraphicsAddressRegister,
+        port!(T::GraphicsPorts::ADDRESS_REGISTER),
+    );
+
+    graphics_register!(
+        read_set_slash_reset,
+        write_set_slash_reset,
+        SetSlashResetRegister,
+    );
+
+    graphics_register!(
+        read_enable_set_slash_reset,
+        write_enable_set_slash_reset,
+        EnableSetSlashResetRegister,
+    );
+
+    graphics_register!(
+        read_color_compare,
+        write_color_compare,
+        ColorCompareRegister,
+    );
+
+    graphics_register!(
+        read_data_rotate,
+        write_data_rotate,
+        DataRotateRegister,
+    );
+
+    graphics_register!(
+        read_map_select,
+        write_read_map_select,
+        ReadMapSelectRegister,
+    );
+
+    graphics_register!(
+        read_graphics_mode,
+        write_graphics_mode,
+        GraphicsModeRegister,
+    );
+
+    graphics_register!(
+        read_miscellaneous,
+        write_miscellaneous,
+        MiscellaneousRegister,
+    );
+
+    graphics_register!(
+        read_color_do_not_care,
+        write_color_do_not_care,
+        ColorDoNotCareRegister,
+    );
+
+    graphics_register!(
+        read_bit_mask,
+        write_bit_mask,
+        BitMaskRegister,
     );
 }

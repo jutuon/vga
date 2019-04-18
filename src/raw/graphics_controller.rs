@@ -8,23 +8,17 @@ use super::{RegisterField};
 pub const ADDRESS_REGISTER: u16 = 0x03CE;
 pub const DATA_REGISTER: u16 = 0x03CF;
 
+declare_register_type!(GraphicsAddressRegister);
 
-#[derive(Debug)]
-pub struct RegisterIndex;
-
-impl RegisterIndex {
-    pub const SET_SLASH_RESET: u8 = 0x00;
-    pub const ENABLE_SET_SLASH_RESET: u8 = 0x01;
-    pub const COLOR_COMPARE: u8 = 0x02;
-    pub const DATA_ROTATE: u8 = 0x03;
-    pub const READ_MAP_SELECT: u8 = 0x04;
-    pub const GRAPHICS_MODE: u8 = 0x05;
-    pub const MISCELLANEOUS: u8 = 0x06;
-    pub const COLOR_DO_NOT_CARE: u8 = 0x07;
-    pub const BIT_MASK: u8 = 0x08;
+impl GraphicsAddressRegister {
+    register_value!(
+        graphics_address,
+        set_graphics_address,
+        0b0000_1111,
+    );
 }
 
-declare_register_type!(SetSlashResetRegister, MapFlags);
+declare_register_type!(SetSlashResetRegister, MapFlags, 0x00);
 
 bitflags! {
     pub struct MapFlags: u8 {
@@ -35,11 +29,11 @@ bitflags! {
     }
 }
 
-declare_register_type!(EnableSetSlashResetRegister, MapFlags);
+declare_register_type!(EnableSetSlashResetRegister, MapFlags, 0x01);
 
-declare_register_type!(ColorCompareRegister, MapFlags);
+declare_register_type!(ColorCompareRegister, MapFlags, 0x02);
 
-declare_register_type!(DataRotateRegister);
+declare_register_type!(DataRotateRegister, 0x03);
 
 impl DataRotateRegister {
     register_enum_with_unwrap!(
@@ -65,9 +59,9 @@ declare_register_enum!(
     }
 );
 
-declare_register_type!(ReadMapSelect);
+declare_register_type!(ReadMapSelectRegister, 0x04);
 
-impl ReadMapSelect {
+impl ReadMapSelectRegister {
     register_enum_with_unwrap!(
         map_select,
         set_map_select,
@@ -84,7 +78,7 @@ declare_register_enum!(
     }
 );
 
-declare_register_type!(GraphicsModeRegister, GraphicsModeRegisterFlags);
+declare_register_type!(GraphicsModeRegister, GraphicsModeRegisterFlags, 0x05);
 
 bitflags! {
     pub struct GraphicsModeRegisterFlags: u8 {
@@ -112,7 +106,7 @@ declare_register_enum!(
     }
 );
 
-declare_register_type!(MiscellaneousRegister, MiscellaneousRegisterFlags);
+declare_register_type!(MiscellaneousRegister, MiscellaneousRegisterFlags, 0x06);
 
 impl MiscellaneousRegister {
     register_enum_with_unwrap!(
@@ -143,9 +137,9 @@ declare_register_enum!(
 );
 
 
-declare_register_type!(ColorDoNotCareRegister, MapFlags);
+declare_register_type!(ColorDoNotCareRegister, MapFlags, 0x07);
 
-declare_register_type!(BitMaskRegister);
+declare_register_type!(BitMaskRegister, 0x08);
 
 impl BitMaskRegister {
     register_value!(
