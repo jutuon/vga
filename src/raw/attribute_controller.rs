@@ -3,39 +3,59 @@ use bitflags::bitflags;
 pub const WRITE_ADDRESS: u16 = 0x03C0;
 pub const READ_ADDRESS: u16 = 0x03C1;
 
-#[derive(Debug)]
-pub struct RegisterIndex;
-
-impl RegisterIndex {
-    pub const INTERNAL_PALETTE: [u8; 16] = [
-        0x0,
-        0x1,
-        0x2,
-        0x3,
-        0x4,
-        0x5,
-        0x6,
-        0x7,
-        0x8,
-        0x9,
-        0xA,
-        0xB,
-        0xC,
-        0xD,
-        0xE,
-        0xF,
-    ];
-    pub const ATTRIBUTE_MODE_CONTROL: u8 = 0x10;
-    pub const OVERSCAN_COLOR: u8 = 0x11;
-    pub const COLOR_PLANE_ENABLE: u8 = 0x12;
-    pub const HORIZONTAL_PEL_PANNING: u8 = 0x13;
-    pub const COLOR_SELECT: u8 = 0x14;
+#[repr(u8)]
+#[derive(Debug, Copy, Clone)]
+pub enum InternalPaletteIndex {
+    I0 = 0,
+    I1,
+    I2,
+    I3,
+    I4,
+    I5,
+    I6,
+    I7,
+    I8,
+    I9,
+    I10,
+    I11,
+    I12,
+    I13,
+    I14,
+    I15,
 }
 
+const fn values() -> [InternalPaletteIndex; 16] {
+    use InternalPaletteIndex::*;
+    [
+        I0,
+        I1,
+        I2,
+        I3,
+        I4,
+        I5,
+        I6,
+        I7,
+        I8,
+        I9,
+        I10,
+        I11,
+        I12,
+        I13,
+        I14,
+        I15,
+    ]
+}
 
-declare_register_type!(AddressRegister);
+impl InternalPaletteIndex {
+    pub const VALUES: [InternalPaletteIndex; 16] = values();
+}
 
-impl AddressRegister {
+impl_from_enum_for_u8!(InternalPaletteIndex);
+
+
+declare_register_type!(AttributeAddressRegister);
+
+impl AttributeAddressRegister {
     register_boolean!(
         internal_palette_address_source,
         set_internal_palette_address_source,
@@ -61,7 +81,7 @@ impl InternalPaletteRegister {
     );
 }
 
-declare_register_type!(AttributeModeControlRegister, AttributeModeControlRegisterFlags);
+declare_register_type!(AttributeModeControlRegister, AttributeModeControlRegisterFlags, 0x10);
 
 bitflags! {
     pub struct AttributeModeControlRegisterFlags: u8 {
@@ -75,7 +95,7 @@ bitflags! {
     }
 }
 
-declare_register_type!(OverscanColorRegister);
+declare_register_type!(OverscanColorRegister, 0x11);
 
 impl OverscanColorRegister {
     register_value!(
@@ -85,7 +105,7 @@ impl OverscanColorRegister {
     );
 }
 
-declare_register_type!(ColorPlaneEnableRegister, ColorPlaneEnableRegisterFlags);
+declare_register_type!(ColorPlaneEnableRegister, ColorPlaneEnableRegisterFlags, 0x12);
 
 bitflags! {
     pub struct ColorPlaneEnableRegisterFlags: u8 {
@@ -96,7 +116,7 @@ bitflags! {
     }
 }
 
-declare_register_type!(HorizontalPelPanningRegister);
+declare_register_type!(HorizontalPelPanningRegister, 0x13);
 
 impl HorizontalPelPanningRegister {
     register_value!(
@@ -107,7 +127,7 @@ impl HorizontalPelPanningRegister {
     );
 }
 
-declare_register_type!(ColorSelectRegister, ColorSelectRegisterFlags);
+declare_register_type!(ColorSelectRegister, ColorSelectRegisterFlags, 0x14);
 
 bitflags! {
     pub struct ColorSelectRegisterFlags: u8 {

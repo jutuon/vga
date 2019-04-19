@@ -6,6 +6,7 @@ use crate::raw::{
     sequencer::*,
     crt_controller::*,
     graphics_controller::*,
+    attribute_controller::*,
 };
 
 #[derive(Debug)]
@@ -464,5 +465,93 @@ impl <T: PortIo> RegisterHandler<T> {
         read_bit_mask,
         write_bit_mask,
         BitMaskRegister,
+    );
+}
+
+macro_rules! attribute_register {
+    ($( #[doc=$text:literal] )* $read_method_name:ident, $write_method_name:ident, $register_type:ident $(,)?) => {
+        $(
+            #[doc=$text]
+        )*
+        pub fn $read_method_name(&mut self) -> $register_type {
+            let raw = self.read_attribute_controller_indexed_register($register_type::INDEX);
+            $register_type::from_register_value(raw)
+        }
+
+        $(
+            #[doc=$text]
+        )*
+        pub fn $write_method_name(&mut self, value: $register_type) {
+            self.write_attribute_controller_indexed_register($register_type::INDEX, value.value());
+        }
+    };
+}
+
+impl <T: PortIo> RegisterHandler<T> {
+    pub fn read_attribute_address(&mut self) -> AttributeAddressRegister {
+        self.read_input_status_1();
+        let raw = self.0.read(port!(T::AttributePorts::READ_ADDRESS));
+        AttributeAddressRegister::from_register_value(raw)
+    }
+
+    pub fn write_attribute_address(&mut self, value: AttributeAddressRegister) {
+        self.read_input_status_1();
+        self.0.write(port!(T::AttributePorts::WRITE_ADDRESS), value.value());
+    }
+
+    fn read_attribute_controller_indexed_register(&mut self, index: u8) -> u8 {
+        let mut address = self.read_attribute_address();
+        address.set_register_index(index);
+        self.write_attribute_address(address);
+
+        self.0.read(port!(T::AttributePorts::READ_ADDRESS))
+    }
+
+    fn write_attribute_controller_indexed_register(&mut self, index: u8, value: u8) {
+        let mut address = self.read_attribute_address();
+        address.set_register_index(index);
+        self.write_attribute_address(address);
+
+        let port = port!(T::AttributePorts::WRITE_ADDRESS);
+        self.0.write(port, value);
+    }
+
+    pub fn read_internal_palette(&mut self, index: InternalPaletteIndex) -> InternalPaletteRegister {
+        let raw = self.read_attribute_controller_indexed_register(index.into());
+        InternalPaletteRegister::from_register_value(raw)
+    }
+
+    pub fn write_internal_palette(&mut self, index: InternalPaletteIndex, value: InternalPaletteRegister) {
+        self.write_attribute_controller_indexed_register(index.into(), value.value());
+    }
+
+    attribute_register!(
+        read_attribute_mode_control,
+        write_attribute_mode_control,
+        AttributeModeControlRegister,
+    );
+
+    attribute_register!(
+        read_overscan_color,
+        write_overscan_color,
+        OverscanColorRegister,
+    );
+
+    attribute_register!(
+        read_color_plane_enable,
+        write_color_plane_enable,
+        ColorPlaneEnableRegister,
+    );
+
+    attribute_register!(
+        read_horizontal_pel_panning,
+        write_horizontal_pel_panning,
+        HorizontalPelPanningRegister,
+    );
+
+    attribute_register!(
+        read_color_select,
+        write_color_select,
+        ColorSelectRegister,
     );
 }
