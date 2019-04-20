@@ -360,35 +360,35 @@ impl <T: PortIo> RegisterHandler<T> {
 }
 
 macro_rules! graphics_register {
-    ($( #[doc=$text:literal] )* $read_method_name:ident, $write_method_name:ident, $register_type:ident $(,)?) => {
+    ($( #[doc=$text:literal] )* $read_method_name:ident, $register_type:ident $(,)?) => {
         $(
             #[doc=$text]
         )*
-        pub fn $read_method_name(&mut self) -> $register_type {
-            let mut address = self.read_graphics_address();
-            address.set_graphics_address($register_type::INDEX);
-            self.write_graphics_address(address);
-
-            let raw = self.0.read(port!(T::GraphicsPorts::DATA_REGISTER));
-            $register_type::from_register_value(raw)
-        }
-
-        $(
-            #[doc=$text]
-        )*
-        pub fn $write_method_name(&mut self, value: $register_type) {
-            let mut address = self.read_graphics_address();
-            address.set_graphics_address($register_type::INDEX);
-            self.write_graphics_address(address);
-
-            let port = port!(T::GraphicsPorts::DATA_REGISTER);
-
-            self.0.write(port, value.value());
+        pub fn $read_method_name(&mut self) -> ReadWrite<'_, T, $register_type> {
+            ReadWrite::new(self, read_graphics_function, write_graphics_function)
         }
     };
 }
 
 impl <T: PortIo> RegisterHandler<T> {
+    fn read_graphics_controller_indexed_register(&mut self, index: u8) -> u8 {
+        let mut address = self.read_graphics_address();
+        address.set_graphics_address(index);
+        self.write_graphics_address(address);
+
+        self.0.read(port!(T::GraphicsPorts::DATA_REGISTER))
+    }
+
+    fn write_graphics_controller_indexed_register(&mut self, index: u8, value: u8) {
+        let mut address = self.read_graphics_address();
+        address.set_graphics_address(index);
+        self.write_graphics_address(address);
+
+        let port = port!(T::GraphicsPorts::DATA_REGISTER);
+
+        self.0.write(port, value);
+    }
+
     read_write_register!(
         read_graphics_address,
         write_graphics_address,
@@ -398,55 +398,46 @@ impl <T: PortIo> RegisterHandler<T> {
 
     graphics_register!(
         read_set_slash_reset,
-        write_set_slash_reset,
         SetSlashResetRegister,
     );
 
     graphics_register!(
         read_enable_set_slash_reset,
-        write_enable_set_slash_reset,
         EnableSetSlashResetRegister,
     );
 
     graphics_register!(
         read_color_compare,
-        write_color_compare,
         ColorCompareRegister,
     );
 
     graphics_register!(
         read_data_rotate,
-        write_data_rotate,
         DataRotateRegister,
     );
 
     graphics_register!(
         read_map_select,
-        write_read_map_select,
         ReadMapSelectRegister,
     );
 
     graphics_register!(
         read_graphics_mode,
-        write_graphics_mode,
         GraphicsModeRegister,
     );
 
     graphics_register!(
         read_miscellaneous,
-        write_miscellaneous,
         MiscellaneousRegister,
     );
 
     graphics_register!(
         read_color_do_not_care,
-        write_color_do_not_care,
         ColorDoNotCareRegister,
     );
 
     graphics_register!(
         read_bit_mask,
-        write_bit_mask,
         BitMaskRegister,
     );
 }
@@ -658,6 +649,17 @@ fn read_crt_function<T: PortIo, U: RegisterWithIndex + CrtControllerRegisterMark
 fn write_crt_function<T: PortIo, U: RegisterWithIndex + CrtControllerRegisterMarker>(register: &mut ReadWrite<'_, T, U>) {
     register.registers.write_crt_controller_indexed_register(U::INDEX, register.value());
 }
+
+fn read_graphics_function<T: PortIo, U: RegisterWithIndex + GraphicsControllerRegisterMarker>(registers: &mut RegisterHandler<T>) -> (&mut RegisterHandler<T>, U) {
+    let data = registers.read_graphics_controller_indexed_register(U::INDEX);
+    let value = U::from_register_value(data);
+    (registers, value)
+}
+
+fn write_graphics_function<T: PortIo, U: RegisterWithIndex + GraphicsControllerRegisterMarker>(register: &mut ReadWrite<'_, T, U>) {
+    register.registers.write_graphics_controller_indexed_register(U::INDEX, register.value());
+}
+
 
 pub struct ReadWrite<'a, T: PortIo, U: Register> {
     registers: &'a mut RegisterHandler<T>,
