@@ -8,12 +8,12 @@ macro_rules! declare_register_type {
         #[derive(Debug, Clone, Copy)]
         pub struct $name(u8);
 
-        impl $name {
-            pub fn from_register_value(value: u8) -> Self {
+        impl $crate::raw::Register for $name {
+            fn from_register_value(value: u8) -> Self {
                 $name(value)
             }
 
-            pub fn value(&self) -> u8 {
+            fn value(&self) -> u8 {
                 self.0
             }
         }
@@ -281,7 +281,12 @@ pub trait RegisterField: core::convert::TryFrom<u8> + Into<u8>  {
     }
 }
 
-pub trait RegisterWithIndex {
+pub trait Register {
+    fn from_register_value(value: u8) -> Self;
+    fn value(&self) -> u8;
+}
+
+pub trait RegisterWithIndex: Register {
     const INDEX: u8;
 }
 

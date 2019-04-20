@@ -3,6 +3,7 @@ use crate::io::PortIo;
 
 use crate::raw::{
     RegisterWithIndex,
+    Register,
     general::*,
     sequencer::*,
     crt_controller::*,
@@ -477,20 +478,12 @@ impl <T: PortIo> RegisterHandler<T> {
 }
 
 macro_rules! attribute_register {
-    ($( #[doc=$text:literal] )* $read_method_name:ident, $write_method_name:ident, $register_type:ident $(,)?) => {
+    ($( #[doc=$text:literal] )* $read_method_name:ident, $register_type:ident $(,)?) => {
         $(
             #[doc=$text]
         )*
-        pub fn $read_method_name(&mut self) -> $register_type {
-            let raw = self.read_attribute_controller_indexed_register($register_type::INDEX);
-            $register_type::from_register_value(raw)
-        }
-
-        $(
-            #[doc=$text]
-        )*
-        pub fn $write_method_name(&mut self, value: $register_type) {
-            self.write_attribute_controller_indexed_register($register_type::INDEX, value.value());
+        pub fn $read_method_name(&mut self) -> ReadWrite<'_, T, $register_type> {
+            ReadWrite::new(self)
         }
     };
 }
@@ -534,32 +527,27 @@ impl <T: PortIo> RegisterHandler<T> {
     }
 
     attribute_register!(
-        read_attribute_mode_control,
-        write_attribute_mode_control,
+        attribute_mode_control,
         AttributeModeControlRegister,
     );
 
     attribute_register!(
-        read_overscan_color,
-        write_overscan_color,
+        overscan_color,
         OverscanColorRegister,
     );
 
     attribute_register!(
-        read_color_plane_enable,
-        write_color_plane_enable,
+        color_plane_enable,
         ColorPlaneEnableRegister,
     );
 
     attribute_register!(
-        read_horizontal_pel_panning,
-        write_horizontal_pel_panning,
+        horizontal_pel_panning,
         HorizontalPelPanningRegister,
     );
 
     attribute_register!(
         read_color_select,
-        write_color_select,
         ColorSelectRegister,
     );
 }
@@ -694,5 +682,43 @@ impl <T: PortIo> CrtControllerValues<'_, T> {
         self.0.write_maximum_scan_line(r0);
         self.0.write_overflow(r1);
         self.0.write_line_compare(r2);
+    }
+}
+
+#[derive(Debug)]
+pub struct ReadWrite<'a, T: PortIo, U> {
+    registers: &'a mut RegisterHandler<T>,
+    register_data: U,
+}
+
+impl <'a, T: PortIo, U: RegisterWithIndex + AttributeRegisterMarker> ReadWrite<'a, T, U> {
+    pub fn new(
+        registers: &'a mut RegisterHandler<T>,
+    ) -> Self {
+        let raw = registers.read_attribute_controller_indexed_register(U::INDEX);
+        let register_data = U::from_register_value(raw);
+
+        Self {
+            register_data,
+            registers,
+        }
+    }
+
+    pub fn write(&mut self) {
+        self.registers.write_attribute_controller_indexed_register(U::INDEX, self.register_data.value());
+    }
+}
+
+impl <T: PortIo, U> core::ops::Deref for ReadWrite<'_, T, U> {
+    type Target = U;
+
+    fn deref(&self) -> &Self::Target {
+        &self.register_data
+    }
+}
+
+impl <T: PortIo, U> core::ops::DerefMut for ReadWrite<'_, T, U> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.register_data
     }
 }

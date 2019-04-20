@@ -3,7 +3,7 @@ use enum_tryfrom_derive::TryFromPrimitive;
 
 use core::convert::TryFrom;
 
-use super::{UnknownValue, RegisterField};
+use super::{UnknownValue, RegisterField, Register};
 
 
 /// Read/Write
