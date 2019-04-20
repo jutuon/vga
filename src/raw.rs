@@ -5,7 +5,7 @@ macro_rules! declare_register_type {
         $(
             #[doc=$text]
         )*
-        #[derive(Debug)]
+        #[derive(Debug, Clone, Copy)]
         pub struct $name(u8);
 
         impl $name {
