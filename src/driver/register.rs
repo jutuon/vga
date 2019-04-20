@@ -48,7 +48,7 @@ macro_rules! read_write_register {
 }
 
 macro_rules! sequencer_register {
-    ($( #[doc=$text:literal] )* $read_method_name:ident, $write_method_name:ident, $register_type:ident $(,)?) => {
+    ($( #[doc=$text:literal] )* $read_method_name:ident, $register_type:ident $(,)?) => {
         $(
             #[doc=$text]
         )*
@@ -155,32 +155,27 @@ impl <T: PortIo> RegisterHandler<T> {
     );
 
     sequencer_register!(
-        read_reset,
-        write_reset,
+        reset,
         ResetRegister,
     );
 
     sequencer_register!(
-        read_clocking_mode,
-        write_clocking_mode,
+        clocking_mode,
         ClockingModeRegister,
     );
 
     sequencer_register!(
-        read_map_mask,
-        write_map_mask,
+        map_mask,
         MapMaskRegister,
     );
 
     sequencer_register!(
-        read_character_map_select,
-        write_character_map_select,
+        character_map_select,
         CharacterMapSelectRegister,
     );
 
     sequencer_register!(
-        read_memory_mode,
-        write_memory_mode,
+        memory_mode,
         MemoryModeRegister,
     );
 }
@@ -234,127 +229,127 @@ impl <T: PortIo> RegisterHandler<T> {
     }
 
     crt_register!(
-        read_horizontal_total,
+        horizontal_total,
         HorizontalTotalRegister,
     );
 
     crt_register!(
-        read_horizontal_display_enable_end,
+        horizontal_display_enable_end,
         HorizontalDisplayEnableEndRegister,
     );
 
     crt_register!(
-        read_start_horizontal_blanking,
+        start_horizontal_blanking,
         StartHorizontalBlankingRegister,
     );
 
     crt_register!(
-        read_end_horizontal_blanking,
+        end_horizontal_blanking,
         EndHorizontalBlankingRegister,
     );
 
     crt_register!(
-        read_start_horizontal_retrace_pulse,
+        start_horizontal_retrace_pulse,
         StartHorizontalRetracePulseRegister,
     );
 
     crt_register!(
-        read_end_horizontal_retrace,
+        end_horizontal_retrace,
         EndHorizontalRetraceRegister,
     );
 
     crt_register!(
-        read_vertical_total,
+        vertical_total,
         VerticalTotalRegister,
     );
 
     crt_register!(
-        read_overflow,
+        overflow,
         OverflowRegister,
     );
 
     crt_register!(
-        read_preset_row_scan,
+        preset_row_scan,
         PresetRowScanRegister,
     );
 
     crt_register!(
-        read_maximum_scan_line,
+        maximum_scan_line,
         MaximumScanLineRegister,
     );
 
     crt_register!(
-        read_cursor_start,
+        cursor_start,
         CursorStartRegister,
     );
 
     crt_register!(
-        read_cursor_end,
+        cursor_end,
         CursorEndRegister,
     );
 
     crt_register!(
-        read_start_address_high,
+        start_address_high,
         StartAddressHighRegister,
     );
 
     crt_register!(
-        read_start_address_low,
+        start_address_low,
         StartAddressLowRegister,
     );
 
     crt_register!(
-        read_cursor_location_high,
+        cursor_location_high,
         CursorLocationHighRegister,
     );
 
     crt_register!(
-        read_cursor_location_low,
+        cursor_location_low,
         CursorLocationLowRegister,
     );
 
     crt_register!(
-        read_vertical_retrace_start,
+        vertical_retrace_start,
         VerticalRetraceStartRegister,
     );
 
     crt_register!(
-        read_vertical_retrace_end,
+        vertical_retrace_end,
         VerticalRetraceEndRegister,
     );
 
     crt_register!(
-        read_vertical_display_enable_end,
+        vertical_display_enable_end,
         VerticalDisplayEnableEndRegister,
     );
 
     crt_register!(
-        read_offset,
+        offset,
         OffsetRegister,
     );
 
     crt_register!(
-        read_underline_location,
+        underline_location,
         UnderlineLocationRegister,
     );
 
     crt_register!(
-        read_start_vertical_blanking,
+        start_vertical_blanking,
         StartVerticalBlankingRegister,
     );
 
     crt_register!(
-        read_end_vertical_blanking,
+        end_vertical_blanking,
         EndVerticalBlankingRegister,
     );
 
     crt_register!(
-        read_crt_mode_control,
+        crt_mode_control,
         CrtModeControlRegister,
     );
 
     crt_register!(
-        read_line_compare,
+        line_compare,
         LineCompareRegister,
     );
 }
@@ -397,47 +392,47 @@ impl <T: PortIo> RegisterHandler<T> {
     );
 
     graphics_register!(
-        read_set_slash_reset,
+        set_slash_reset,
         SetSlashResetRegister,
     );
 
     graphics_register!(
-        read_enable_set_slash_reset,
+        enable_set_slash_reset,
         EnableSetSlashResetRegister,
     );
 
     graphics_register!(
-        read_color_compare,
+        color_compare,
         ColorCompareRegister,
     );
 
     graphics_register!(
-        read_data_rotate,
+        data_rotate,
         DataRotateRegister,
     );
 
     graphics_register!(
-        read_map_select,
+        map_select,
         ReadMapSelectRegister,
     );
 
     graphics_register!(
-        read_graphics_mode,
+        graphics_mode,
         GraphicsModeRegister,
     );
 
     graphics_register!(
-        read_miscellaneous,
+        miscellaneous,
         MiscellaneousRegister,
     );
 
     graphics_register!(
-        read_color_do_not_care,
+        color_do_not_care,
         ColorDoNotCareRegister,
     );
 
     graphics_register!(
-        read_bit_mask,
+        bit_mask,
         BitMaskRegister,
     );
 }
@@ -512,7 +507,7 @@ impl <T: PortIo> RegisterHandler<T> {
     );
 
     attribute_register!(
-        read_color_select,
+        color_select,
         ColorSelectRegister,
     );
 }
@@ -593,40 +588,40 @@ pub struct CrtControllerValues<'a, T: PortIo>(&'a mut RegisterHandler<T>);
 impl <T: PortIo> CrtControllerValues<'_, T> {
     /// A 6-bit value.
     pub fn end_horizontal_blanking(&mut self) -> u8 {
-        self.0.read_end_horizontal_retrace().end_blanking_bit_5() |
-        self.0.read_end_horizontal_blanking().end_blanking_bits_from_0_to_4()
+        self.0.end_horizontal_retrace().end_blanking_bit_5() |
+        self.0.end_horizontal_blanking().end_blanking_bits_from_0_to_4()
     }
 
     /// A 6-bit value.
     pub fn set_end_horizontal_blanking(&mut self, value: u8) {
-        self.0.read_end_horizontal_retrace().modify(|r| r.set_end_blanking_bit_5(value)).write();
-        self.0.read_end_horizontal_blanking().modify(|r| r.set_end_blanking_bits_from_0_to_4(value));
+        self.0.end_horizontal_retrace().modify(|r| r.set_end_blanking_bit_5(value)).write();
+        self.0.end_horizontal_blanking().modify(|r| r.set_end_blanking_bits_from_0_to_4(value));
     }
 
     /// A 10-bit value.
     pub fn vertical_total(&mut self) -> u16 {
-        self.0.read_vertical_total().vertical_total_bits_from_0_to_7() |
-        self.0.read_overflow().vertical_total_bits_8_and_9()
+        self.0.vertical_total().vertical_total_bits_from_0_to_7() |
+        self.0.overflow().vertical_total_bits_8_and_9()
     }
 
     /// A 10-bit value.
     pub fn set_vertical_total(&mut self, value: u16) {
-        self.0.read_vertical_total().modify(|r| r.set_vertical_total_bits_from_0_to_7(value)).write();
-        self.0.read_overflow().modify(|r| r.set_vertical_total_bits_8_and_9(value)).write();
+        self.0.vertical_total().modify(|r| r.set_vertical_total_bits_from_0_to_7(value)).write();
+        self.0.overflow().modify(|r| r.set_vertical_total_bits_8_and_9(value)).write();
     }
 
     /// A 10-bit value.
     pub fn line_compare(&mut self) -> u16 {
-        self.0.read_maximum_scan_line().line_compare_bit_9() |
-        self.0.read_overflow().line_compare_bit_8() |
-        self.0.read_line_compare().line_compare_target_bits_from_0_to_7()
+        self.0.maximum_scan_line().line_compare_bit_9() |
+        self.0.overflow().line_compare_bit_8() |
+        self.0.line_compare().line_compare_target_bits_from_0_to_7()
     }
 
     /// A 10-bit value.
     pub fn set_line_compare(&mut self, value: u16) {
-        self.0.read_maximum_scan_line().modify(|r| r.set_line_compare_bit_9(value)).write();
-        self.0.read_overflow().modify(|r| r.set_line_compare_bit_8(value)).write();
-        self.0.read_line_compare().modify(|r| r.set_line_compare_target_bits_from_0_to_7(value)).write();
+        self.0.maximum_scan_line().modify(|r| r.set_line_compare_bit_9(value)).write();
+        self.0.overflow().modify(|r| r.set_line_compare_bit_8(value)).write();
+        self.0.line_compare().modify(|r| r.set_line_compare_target_bits_from_0_to_7(value)).write();
     }
 }
 
