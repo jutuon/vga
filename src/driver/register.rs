@@ -52,24 +52,8 @@ macro_rules! sequencer_register {
         $(
             #[doc=$text]
         )*
-        pub fn $read_method_name(&mut self) -> $register_type {
-            let mut address = self.read_sequencer_address();
-            address.set_sequencer_address($register_type::INDEX);
-            self.write_sequencer_address(address);
-
-            let raw = self.0.read(port!(T::SequencerPorts::DATA_REGISTER));
-            $register_type::from_register_value(raw)
-        }
-
-        $(
-            #[doc=$text]
-        )*
-        pub fn $write_method_name(&mut self, value: $register_type) {
-            let mut address = self.read_sequencer_address();
-            address.set_sequencer_address($register_type::INDEX);
-            self.write_sequencer_address(address);
-
-            self.0.write(port!(T::SequencerPorts::DATA_REGISTER), value.value());
+        pub fn $read_method_name(&mut self) -> ReadWrite<'_, T, $register_type> {
+            ReadWrite::new(self, read_sequencer_function, write_sequencer_function)
         }
     };
 }
@@ -147,6 +131,22 @@ impl <T: PortIo> RegisterHandler<T> {
 }
 
 impl <T: PortIo> RegisterHandler<T> {
+    fn read_sequencer_indexed_register(&mut self, index: u8) -> u8 {
+        let mut address = self.read_sequencer_address();
+        address.set_sequencer_address(index);
+        self.write_sequencer_address(address);
+
+        self.0.read(port!(T::SequencerPorts::DATA_REGISTER))
+    }
+
+    fn write_sequencer_indexed_register(&mut self, index: u8, value: u8) {
+        let mut address = self.read_sequencer_address();
+        address.set_sequencer_address(index);
+        self.write_sequencer_address(address);
+
+        self.0.write(port!(T::SequencerPorts::DATA_REGISTER), value);
+    }
+
     read_write_register!(
         read_sequencer_address,
         write_sequencer_address,
@@ -658,6 +658,16 @@ fn read_graphics_function<T: PortIo, U: RegisterWithIndex + GraphicsControllerRe
 
 fn write_graphics_function<T: PortIo, U: RegisterWithIndex + GraphicsControllerRegisterMarker>(register: &mut ReadWrite<'_, T, U>) {
     register.registers.write_graphics_controller_indexed_register(U::INDEX, register.value());
+}
+
+fn read_sequencer_function<T: PortIo, U: RegisterWithIndex + SequencerRegisterMarker>(registers: &mut RegisterHandler<T>) -> (&mut RegisterHandler<T>, U) {
+    let data = registers.read_sequencer_indexed_register(U::INDEX);
+    let value = U::from_register_value(data);
+    (registers, value)
+}
+
+fn write_sequencer_function<T: PortIo, U: RegisterWithIndex + SequencerRegisterMarker>(register: &mut ReadWrite<'_, T, U>) {
+    register.registers.write_sequencer_indexed_register(U::INDEX, register.value());
 }
 
 
