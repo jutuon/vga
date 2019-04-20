@@ -179,7 +179,7 @@ impl OverflowRegister {
     }
 
     /// Part 2/3 of a 10-bit value.
-    pub fn line_compare_one_bit_8(&self) -> u16 {
+    pub fn line_compare_bit_8(&self) -> u16 {
         extract_bit_from_u8(self.0, BitIndexU8::I4, BitIndexU16::I8)
     }
 
