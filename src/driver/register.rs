@@ -626,3 +626,72 @@ impl <T: PortIo> RegisterHandler<T> {
         }
     }
 }
+
+impl <T: PortIo> RegisterHandler<T> {
+    pub fn crt(&mut self) -> CrtControllerValues<'_, T> {
+        CrtControllerValues(self)
+    }
+}
+
+#[derive(Debug)]
+pub struct CrtControllerValues<'a, T: PortIo>(&'a mut RegisterHandler<T>);
+
+impl <T: PortIo> CrtControllerValues<'_, T> {
+    /// A 6-bit value.
+    pub fn end_horizontal_blanking(&mut self) -> u8 {
+        self.0.read_end_horizontal_retrace().end_blanking_bit_5() |
+        self.0.read_end_horizontal_blanking().end_blanking_bits_from_0_to_4()
+    }
+
+    /// A 6-bit value.
+    pub fn set_end_horizontal_blanking(&mut self, value: u8) {
+        let mut r0 = self.0.read_end_horizontal_retrace();
+        let mut r1 = self.0.read_end_horizontal_blanking();
+
+        r0.set_end_blanking_bit_5(value);
+        r1.set_end_blanking_bits_from_0_to_4(value);
+
+        self.0.write_end_horizontal_retrace(r0);
+        self.0.write_end_horizontal_blanking(r1);
+    }
+
+    /// A 10-bit value.
+    pub fn vertical_total(&mut self) -> u16 {
+        self.0.read_vertical_total().vertical_total_bits_from_0_to_7() |
+        self.0.read_overflow().vertical_total_bits_8_and_9()
+    }
+
+    /// A 10-bit value.
+    pub fn set_vertical_total(&mut self, value: u16) {
+        let mut r0 = self.0.read_vertical_total();
+        let mut r1 = self.0.read_overflow();
+
+        r0.set_vertical_total_bits_from_0_to_7(value);
+        r1.set_vertical_total_bits_8_and_9(value);
+
+        self.0.write_vertical_total(r0);
+        self.0.write_overflow(r1);
+    }
+
+    /// A 10-bit value.
+    pub fn line_compare(&mut self) -> u16 {
+        self.0.read_maximum_scan_line().line_compare_bit_9() |
+        self.0.read_overflow().line_compare_bit_8() |
+        self.0.read_line_compare().line_compare_target_bits_from_0_to_7()
+    }
+
+    /// A 10-bit value.
+    pub fn set_line_compare(&mut self, value: u16) {
+        let mut r0 = self.0.read_maximum_scan_line();
+        let mut r1 = self.0.read_overflow();
+        let mut r2 = self.0.read_line_compare();
+
+        r0.set_line_compare_bit_9(value);
+        r1.set_line_compare_bit_8(value);
+        r2.set_line_compare_target_bits_from_0_to_7(value);
+
+        self.0.write_maximum_scan_line(r0);
+        self.0.write_overflow(r1);
+        self.0.write_line_compare(r2);
+    }
+}
