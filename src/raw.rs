@@ -31,9 +31,10 @@ macro_rules! declare_register_type {
                 $flags_type::from_bits_truncate(self.0)
             }
 
-            pub fn set_flags(&mut self, value: $flags_type) {
+            pub fn set_flags(&mut self, value: $flags_type) -> &mut Self {
                 crate::raw::remove_bits(&mut self.0, $flags_type::all().bits());
                 self.0 |= value.bits();
+                self
             }
         }
     };
@@ -91,9 +92,10 @@ macro_rules! register_value {
         $(
             #[doc=$text]
         )*
-        pub fn $setter_name(&mut self, value: u8) {
+        pub fn $setter_name(&mut self, value: u8) -> &mut Self {
             crate::raw::remove_bits(&mut self.0, $mask);
             self.0 |= value & $mask;
+            self
         }
     };
     ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $type:ty $(,)?) => {
@@ -107,8 +109,9 @@ macro_rules! register_value {
         $(
             #[doc=$text]
         )*
-        pub fn $setter_name(&mut self, value: $type) {
+        pub fn $setter_name(&mut self, value: $type) -> &mut Self {
             self.0 = value as u8;
+            self
         }
     };
 }
@@ -125,11 +128,12 @@ macro_rules! register_boolean {
         $(
             #[doc=$text]
         )*
-        pub fn $setter_name(&mut self, value: bool) {
+        pub fn $setter_name(&mut self, value: bool) -> &mut Self {
             crate::raw::remove_bits(&mut self.0, $mask);
             if value {
                 self.0 |= $mask;
             }
+            self
         }
     };
 }
@@ -146,8 +150,9 @@ macro_rules! register_enum {
         $(
             #[doc=$text]
         )*
-        pub fn $setter_name(&mut self, value: $type_name) {
-            value.update_register_value(&mut self.0)
+        pub fn $setter_name(&mut self, value: $type_name) -> &mut Self {
+            value.update_register_value(&mut self.0);
+            self
         }
     };
 }
@@ -164,8 +169,9 @@ macro_rules! register_enum_with_unwrap {
         $(
             #[doc=$text]
         )*
-        pub fn $setter_name(&mut self, value: $name) {
-            value.update_register_value(&mut self.0)
+        pub fn $setter_name(&mut self, value: $name) -> &mut Self {
+            value.update_register_value(&mut self.0);
+            self
         }
     };
 }

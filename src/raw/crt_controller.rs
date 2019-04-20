@@ -106,9 +106,10 @@ impl EndHorizontalRetraceRegister {
     }
 
     /// Set part 2/2 of a 6-bit end horizontal blanking value.
-    pub fn set_end_blanking_bit_5(&mut self, value: u8) {
+    pub fn set_end_blanking_bit_5(&mut self, value: u8) -> &mut Self {
         remove_bits(&mut self.0, Self::END_BLANKING_MASK);
         self.0 |= (value << 2) & Self::END_BLANKING_MASK;
+        self
     }
 
     register_enum_with_unwrap!(
@@ -146,12 +147,13 @@ impl OverflowRegister {
     }
 
     /// Set part 2/2 of a 10-bit value.
-    pub fn set_vertical_retrace_start_bits_8_and_9(&mut self, value: u16) {
+    pub fn set_vertical_retrace_start_bits_8_and_9(&mut self, value: u16) -> &mut Self {
         let bit9 = extract_bit_from_u16(value, BitIndexU16::I9, BitIndexU8::I7);
         let bit8 = extract_bit_from_u16(value, BitIndexU16::I8, BitIndexU8::I2);
 
         remove_bits(&mut self.0, 1 << 7 | 1 << 2);
         self.0 |= bit9 | bit8;
+        self
     }
 
     /// Part 2/2 of a 10-bit value.
@@ -162,12 +164,13 @@ impl OverflowRegister {
     }
 
     /// Set part 2/2 of a 10-bit value.
-    pub fn set_vertical_display_enable_end_bits_8_and_9(&mut self, value: u16) {
+    pub fn set_vertical_display_enable_end_bits_8_and_9(&mut self, value: u16) -> &mut Self {
         let bit9 = extract_bit_from_u16(value, BitIndexU16::I9, BitIndexU8::I6);
         let bit8 = extract_bit_from_u16(value, BitIndexU16::I8, BitIndexU8::I1);
 
         remove_bits(&mut self.0, 1 << 6 | 1 << 1);
         self.0 |= bit9 | bit8;
+        self
     }
 
     /// Part 2/2 of a 10-bit value.
@@ -178,12 +181,13 @@ impl OverflowRegister {
     }
 
     /// Set part 2/2 of a 10-bit value.
-    pub fn set_vertical_total_bits_8_and_9(&mut self, value: u16) {
+    pub fn set_vertical_total_bits_8_and_9(&mut self, value: u16) -> &mut Self {
         let bit9 = extract_bit_from_u16(value, BitIndexU16::I9, BitIndexU8::I5);
         let bit8 = extract_bit_from_u16(value, BitIndexU16::I8, BitIndexU8::I0);
 
         remove_bits(&mut self.0, 1 << 5 | 1);
         self.0 |= bit9 | bit8;
+        self
     }
 
     /// Part 2/3 of a 10-bit value.
@@ -192,9 +196,10 @@ impl OverflowRegister {
     }
 
     /// Set part 2/3 of a 10-bit value.
-    pub fn set_line_compare_bit_8(&mut self, value: u16) {
+    pub fn set_line_compare_bit_8(&mut self, value: u16) -> &mut Self {
         remove_bits(&mut self.0, 1 << 4);
         self.0 |= extract_bit_from_u16(value, BitIndexU16::I8, BitIndexU8::I4);
+        self
     }
 
     /// Part 2/3 of a 10-bit value.
@@ -203,9 +208,10 @@ impl OverflowRegister {
     }
 
     /// Set part 2/3 of a 10-bit value.
-    pub fn set_vertical_blanking_start_bit_8(&mut self, value: u16) {
+    pub fn set_vertical_blanking_start_bit_8(&mut self, value: u16) -> &mut Self {
         remove_bits(&mut self.0, 1 << 3);
         self.0 |= extract_bit_from_u16(value, BitIndexU16::I0, BitIndexU8::I3);
+        self
     }
 }
 
@@ -242,9 +248,10 @@ impl MaximumScanLineRegister {
     }
 
     /// Set part 3/3 of a 10-bit value.
-    pub fn set_line_compare_bit_9(&mut self, value: u16) {
+    pub fn set_line_compare_bit_9(&mut self, value: u16) -> &mut Self {
         remove_bits(&mut self.0, 1 << 6);
         self.0 |= extract_bit_from_u16(value, BitIndexU16::I9, BitIndexU8::I6);
+        self
     }
 
     /// Part 3/3 of a 10-bit value.
@@ -253,9 +260,10 @@ impl MaximumScanLineRegister {
     }
 
     /// Set part 3/3 of a 10-bit value.
-    pub fn set_start_vertical_blanking_bit_9(&mut self, value: u16) {
+    pub fn set_start_vertical_blanking_bit_9(&mut self, value: u16) -> &mut Self {
         remove_bits(&mut self.0, 1 << 5);
         self.0 |= extract_bit_from_u16(value, BitIndexU16::I9, BitIndexU8::I5);
+        self
     }
 
     register_value!(
@@ -306,8 +314,9 @@ impl StartAddressHighRegister {
         (self.0 as u16) << 8
     }
 
-    pub fn set_start_address_bits_from_8_to_15(&mut self, value: u16) {
+    pub fn set_start_address_bits_from_8_to_15(&mut self, value: u16) -> &mut Self {
         self.0 = (value >> 8) as u8;
+        self
     }
 }
 

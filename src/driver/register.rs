@@ -75,40 +75,12 @@ macro_rules! sequencer_register {
 }
 
 macro_rules! crt_register {
-    ($( #[doc=$text:literal] )* $read_method_name:ident, $write_method_name:ident, $register_type:ident $(,)?) => {
+    ($( #[doc=$text:literal] )* $read_method_name:ident, $register_type:ident $(,)?) => {
         $(
             #[doc=$text]
         )*
-        pub fn $read_method_name(&mut self) -> $register_type {
-            let mut address = self.read_crt_address();
-            address.set_crt_address($register_type::INDEX);
-            self.write_crt_address(address);
-
-            let port = if self.io_select_address_enabled() {
-                port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_ON)
-            } else {
-                port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_OFF)
-            };
-
-            let raw = self.0.read(port);
-            $register_type::from_register_value(raw)
-        }
-
-        $(
-            #[doc=$text]
-        )*
-        pub fn $write_method_name(&mut self, value: $register_type) {
-            let mut address = self.read_crt_address();
-            address.set_crt_address($register_type::INDEX);
-            self.write_crt_address(address);
-
-            let port = if self.io_select_address_enabled() {
-                port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_ON)
-            } else {
-                port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_OFF)
-            };
-
-            self.0.write(port, value.value());
+        pub fn $read_method_name(&mut self) -> ReadWrite<'_, T, $register_type> {
+            ReadWrite::new(self, read_crt_function, write_crt_function)
         }
     };
 }
@@ -233,154 +205,156 @@ impl <T: PortIo> RegisterHandler<T> {
         self.0.write(port, value.value());
     }
 
+    pub fn read_crt_controller_indexed_register(&mut self, index: u8) -> u8 {
+        let mut address = self.read_crt_address();
+        address.set_crt_address(index);
+        self.write_crt_address(address);
+
+        let port = if self.io_select_address_enabled() {
+            port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_ON)
+        } else {
+            port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_OFF)
+        };
+
+        self.0.read(port)
+    }
+
+    fn write_crt_controller_indexed_register(&mut self, index: u8, value: u8) {
+        let mut address = self.read_crt_address();
+        address.set_crt_address(index);
+        self.write_crt_address(address);
+
+        let port = if self.io_select_address_enabled() {
+            port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_ON)
+        } else {
+            port!(T::CrtPorts::DATA_REGISTER_IO_SELECT_OFF)
+        };
+
+        self.0.write(port, value);
+    }
+
     crt_register!(
         read_horizontal_total,
-        write_horizontal_total,
         HorizontalTotalRegister,
     );
 
     crt_register!(
         read_horizontal_display_enable_end,
-        write_horizontal_display_enable_end,
         HorizontalDisplayEnableEndRegister,
     );
 
     crt_register!(
         read_start_horizontal_blanking,
-        write_start_horizontal_blanking,
         StartHorizontalBlankingRegister,
     );
 
     crt_register!(
         read_end_horizontal_blanking,
-        write_end_horizontal_blanking,
         EndHorizontalBlankingRegister,
     );
 
     crt_register!(
         read_start_horizontal_retrace_pulse,
-        write_start_horizontal_retrace_pulse,
         StartHorizontalRetracePulseRegister,
     );
 
     crt_register!(
         read_end_horizontal_retrace,
-        write_end_horizontal_retrace,
         EndHorizontalRetraceRegister,
     );
 
     crt_register!(
         read_vertical_total,
-        write_vertical_total,
         VerticalTotalRegister,
     );
 
     crt_register!(
         read_overflow,
-        write_overflow,
         OverflowRegister,
     );
 
     crt_register!(
         read_preset_row_scan,
-        write_preset_row_scan,
         PresetRowScanRegister,
     );
 
     crt_register!(
         read_maximum_scan_line,
-        write_maximum_scan_line,
         MaximumScanLineRegister,
     );
 
     crt_register!(
         read_cursor_start,
-        write_cursor_start,
         CursorStartRegister,
     );
 
     crt_register!(
         read_cursor_end,
-        write_cursor_end,
         CursorEndRegister,
     );
 
     crt_register!(
         read_start_address_high,
-        write_start_address_high,
         StartAddressHighRegister,
     );
 
     crt_register!(
         read_start_address_low,
-        write_start_address_low,
         StartAddressLowRegister,
     );
 
     crt_register!(
         read_cursor_location_high,
-        write_cursor_location_high,
         CursorLocationHighRegister,
     );
 
-
     crt_register!(
         read_cursor_location_low,
-        write_cursor_location_low,
         CursorLocationLowRegister,
     );
 
     crt_register!(
         read_vertical_retrace_start,
-        write_vertical_retrace_start,
         VerticalRetraceStartRegister,
     );
 
     crt_register!(
         read_vertical_retrace_end,
-        write_vertical_retrace_end,
         VerticalRetraceEndRegister,
     );
 
     crt_register!(
         read_vertical_display_enable_end,
-        write_vertical_display_enable_end,
         VerticalDisplayEnableEndRegister,
     );
 
     crt_register!(
         read_offset,
-        write_offset,
         OffsetRegister,
     );
 
     crt_register!(
         read_underline_location,
-        write_underline_location,
         UnderlineLocationRegister,
     );
 
     crt_register!(
         read_start_vertical_blanking,
-        write_start_vertical_blanking,
         StartVerticalBlankingRegister,
     );
 
     crt_register!(
         read_end_vertical_blanking,
-        write_end_vertical_blanking,
         EndVerticalBlankingRegister,
     );
 
     crt_register!(
         read_crt_mode_control,
-        write_crt_mode_control,
         CrtModeControlRegister,
     );
 
     crt_register!(
         read_line_compare,
-        write_line_compare,
         LineCompareRegister,
     );
 }
@@ -483,7 +457,7 @@ macro_rules! attribute_register {
             #[doc=$text]
         )*
         pub fn $read_method_name(&mut self) -> ReadWrite<'_, T, $register_type> {
-            ReadWrite::new(self)
+            ReadWrite::new(self, read_attribute_function, write_attribute_function)
         }
     };
 }
@@ -634,14 +608,8 @@ impl <T: PortIo> CrtControllerValues<'_, T> {
 
     /// A 6-bit value.
     pub fn set_end_horizontal_blanking(&mut self, value: u8) {
-        let mut r0 = self.0.read_end_horizontal_retrace();
-        let mut r1 = self.0.read_end_horizontal_blanking();
-
-        r0.set_end_blanking_bit_5(value);
-        r1.set_end_blanking_bits_from_0_to_4(value);
-
-        self.0.write_end_horizontal_retrace(r0);
-        self.0.write_end_horizontal_blanking(r1);
+        self.0.read_end_horizontal_retrace().modify(|r| r.set_end_blanking_bit_5(value)).write();
+        self.0.read_end_horizontal_blanking().modify(|r| r.set_end_blanking_bits_from_0_to_4(value));
     }
 
     /// A 10-bit value.
@@ -652,14 +620,8 @@ impl <T: PortIo> CrtControllerValues<'_, T> {
 
     /// A 10-bit value.
     pub fn set_vertical_total(&mut self, value: u16) {
-        let mut r0 = self.0.read_vertical_total();
-        let mut r1 = self.0.read_overflow();
-
-        r0.set_vertical_total_bits_from_0_to_7(value);
-        r1.set_vertical_total_bits_8_and_9(value);
-
-        self.0.write_vertical_total(r0);
-        self.0.write_overflow(r1);
+        self.0.read_vertical_total().modify(|r| r.set_vertical_total_bits_from_0_to_7(value)).write();
+        self.0.read_overflow().modify(|r| r.set_vertical_total_bits_8_and_9(value)).write();
     }
 
     /// A 10-bit value.
@@ -671,45 +633,70 @@ impl <T: PortIo> CrtControllerValues<'_, T> {
 
     /// A 10-bit value.
     pub fn set_line_compare(&mut self, value: u16) {
-        let mut r0 = self.0.read_maximum_scan_line();
-        let mut r1 = self.0.read_overflow();
-        let mut r2 = self.0.read_line_compare();
-
-        r0.set_line_compare_bit_9(value);
-        r1.set_line_compare_bit_8(value);
-        r2.set_line_compare_target_bits_from_0_to_7(value);
-
-        self.0.write_maximum_scan_line(r0);
-        self.0.write_overflow(r1);
-        self.0.write_line_compare(r2);
+        self.0.read_maximum_scan_line().modify(|r| r.set_line_compare_bit_9(value)).write();
+        self.0.read_overflow().modify(|r| r.set_line_compare_bit_8(value)).write();
+        self.0.read_line_compare().modify(|r| r.set_line_compare_target_bits_from_0_to_7(value)).write();
     }
 }
 
-#[derive(Debug)]
-pub struct ReadWrite<'a, T: PortIo, U> {
+fn read_attribute_function<T: PortIo, U: RegisterWithIndex + AttributeRegisterMarker>(registers: &mut RegisterHandler<T>) -> (&mut RegisterHandler<T>, U) {
+    let data = registers.read_attribute_controller_indexed_register(U::INDEX);
+    let value = U::from_register_value(data);
+    (registers, value)
+}
+
+fn write_attribute_function<T: PortIo, U: RegisterWithIndex + AttributeRegisterMarker>(register: &mut ReadWrite<'_, T, U>) {
+    register.registers.write_attribute_controller_indexed_register(U::INDEX, register.value());
+}
+
+fn read_crt_function<T: PortIo, U: RegisterWithIndex + CrtControllerRegisterMarker>(registers: &mut RegisterHandler<T>) -> (&mut RegisterHandler<T>, U) {
+    let data = registers.read_crt_controller_indexed_register(U::INDEX);
+    let value = U::from_register_value(data);
+    (registers, value)
+}
+
+fn write_crt_function<T: PortIo, U: RegisterWithIndex + CrtControllerRegisterMarker>(register: &mut ReadWrite<'_, T, U>) {
+    register.registers.write_crt_controller_indexed_register(U::INDEX, register.value());
+}
+
+pub struct ReadWrite<'a, T: PortIo, U: Register> {
     registers: &'a mut RegisterHandler<T>,
+    write_function: fn(&mut Self),
     register_data: U,
 }
 
-impl <'a, T: PortIo, U: RegisterWithIndex + AttributeRegisterMarker> ReadWrite<'a, T, U> {
+impl <T: PortIo, U: Register> core::fmt::Debug for ReadWrite<'_, T, U> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "ReadWrite")
+    }
+}
+
+impl <'a, T: PortIo, U: Register> ReadWrite<'a, T, U> {
     pub fn new(
         registers: &'a mut RegisterHandler<T>,
+        read_function: fn(&'a mut RegisterHandler<T>) -> (&'a mut RegisterHandler<T>, U),
+        write_function: fn(&mut Self),
     ) -> Self {
-        let raw = registers.read_attribute_controller_indexed_register(U::INDEX);
-        let register_data = U::from_register_value(raw);
+        let (registers, register_data) = (read_function)(registers);
 
         Self {
             register_data,
             registers,
+            write_function,
         }
     }
 
     pub fn write(&mut self) {
-        self.registers.write_attribute_controller_indexed_register(U::INDEX, self.register_data.value());
+        (self.write_function)(self)
+    }
+
+    pub fn modify<V: FnMut(&mut U) -> &mut U>(&mut self, mut function: V) -> &mut Self {
+        (function)(&mut self.register_data);
+        self
     }
 }
 
-impl <T: PortIo, U> core::ops::Deref for ReadWrite<'_, T, U> {
+impl <T: PortIo, U: Register> core::ops::Deref for ReadWrite<'_, T, U> {
     type Target = U;
 
     fn deref(&self) -> &Self::Target {
@@ -717,7 +704,7 @@ impl <T: PortIo, U> core::ops::Deref for ReadWrite<'_, T, U> {
     }
 }
 
-impl <T: PortIo, U> core::ops::DerefMut for ReadWrite<'_, T, U> {
+impl <T: PortIo, U: Register> core::ops::DerefMut for ReadWrite<'_, T, U> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.register_data
     }
