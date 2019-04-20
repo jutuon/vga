@@ -7,6 +7,7 @@ use crate::raw::{
     crt_controller::*,
     graphics_controller::*,
     attribute_controller::*,
+    video_dac_palette::*,
 };
 
 #[derive(Debug)]
@@ -554,4 +555,68 @@ impl <T: PortIo> RegisterHandler<T> {
         write_color_select,
         ColorSelectRegister,
     );
+}
+
+impl <T: PortIo> RegisterHandler<T> {
+    read_write_register!(
+        read_palette_address_write_mode,
+        write_palette_address_write_mode,
+        PaletteAddressWriteModeRegister,
+        port!(T::DacPorts::PALETTE_ADDRESS_WRITE_MODE),
+    );
+
+    write_register!(
+        write_palette_address_read_mode,
+        PaletteAddressReadModeRegister,
+        port!(T::DacPorts::PALETTE_ADDRESS_READ_MODE),
+    );
+
+    read_register!(
+        read_dac_state,
+        DacStateRegister,
+        port!(T::DacPorts::DAC_STATE),
+    );
+
+    read_write_register!(
+        read_palette_data,
+        write_palette_data,
+        PaletteDataRegister,
+        port!(T::DacPorts::PALETTE_DATA),
+    );
+
+    read_write_register!(
+        read_pel_mask,
+        write_pel_mask,
+        PelMaskRegister,
+        port!(T::DacPorts::PEL_MASK),
+    );
+
+    pub fn read_dac_palette(&mut self, start_from_index: u8, data: &mut [PaletteColor]) {
+        let index = PaletteAddressReadModeRegister::new(start_from_index);
+        self.write_palette_address_read_mode(index);
+
+        let iterator = data.iter_mut().take((u8::max_value() - start_from_index + 1) as usize);
+
+        for color in iterator {
+           let r = self.read_palette_data();
+           let g = self.read_palette_data();
+           let b = self.read_palette_data();
+
+           color.set_r(r.color_value());
+           color.set_g(g.color_value());
+           color.set_b(b.color_value());
+        }
+    }
+
+    pub fn write_dac_palette(&mut self, start_from_index: u8, data: &[PaletteColor]) {
+        let index = PaletteAddressWriteModeRegister::new(start_from_index);
+        self.write_palette_address_write_mode(index);
+
+        let iterator = data.iter().take((u8::max_value() - start_from_index + 1) as usize);
+        for color in iterator {
+           self.write_palette_data(color.r);
+           self.write_palette_data(color.g);
+           self.write_palette_data(color.b);
+        }
+    }
 }

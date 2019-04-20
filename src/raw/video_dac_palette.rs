@@ -25,25 +25,99 @@ pub const PALETTE_DATA: u16 = 0x03C9;
 pub const PEL_MASK: u16 = 0x03C6;
 
 
-declare_register_type!(PaletteAddress);
+declare_register_type!(PaletteAddressWriteModeRegister);
 
-impl PaletteAddress {
+impl PaletteAddressWriteModeRegister {
+    pub fn new(index: u8) -> Self {
+        PaletteAddressWriteModeRegister(index)
+    }
+
     register_value!(
-        palette_address,
-        set_palette_address,
+        palette_address_write_mode,
+        set_palette_address_write_mode,
         u8,
     );
 }
 
-declare_register_type!(PaletteData);
+declare_register_type!(PaletteAddressReadModeRegister);
 
-impl PaletteData {
+impl PaletteAddressReadModeRegister {
+    pub fn new(index: u8) -> Self {
+        PaletteAddressReadModeRegister(index)
+    }
+
+    register_value!(
+        palette_address_read_mode,
+        set_palette_address_read_mode,
+        u8,
+    );
+}
+
+declare_register_type!(PaletteDataRegister);
+
+impl PaletteDataRegister {
     register_value!(
         /// A 6-bit value.
         color_value,
         set_color_value,
         0b0011_1111,
     );
+}
+
+#[derive(Debug)]
+pub struct PaletteColor{
+    pub(crate) r: PaletteDataRegister,
+    pub(crate) g: PaletteDataRegister,
+    pub(crate) b: PaletteDataRegister,
+}
+
+impl Default for PaletteColor {
+    fn default() -> Self {
+        Self {
+            r: PaletteDataRegister::from_register_value(0),
+            g: PaletteDataRegister::from_register_value(0),
+            b: PaletteDataRegister::from_register_value(0),
+        }
+    }
+}
+
+impl PaletteColor {
+    pub fn new(r: u8, g: u8, b: u8) {
+        let mut value = Self::default();
+        value.set_r(r);
+        value.set_g(g);
+        value.set_b(b);
+    }
+
+    /// A 6-bit value.
+    pub fn r(&self) -> u8 {
+        self.r.color_value()
+    }
+
+    /// A 6-bit value.
+    pub fn g(&self) -> u8 {
+        self.g.color_value()
+    }
+
+    /// A 6-bit value.
+    pub fn b(&self) -> u8 {
+        self.b.color_value()
+    }
+
+    /// A 6-bit value.
+    pub fn set_r(&mut self, value: u8) {
+        self.r.set_color_value(value);
+    }
+
+    /// A 6-bit value.
+    pub fn set_g(&mut self, value: u8) {
+        self.g.set_color_value(value);
+    }
+
+    /// A 6-bit value.
+    pub fn set_b(&mut self, value: u8) {
+        self.b.set_color_value(value);
+    }
 }
 
 declare_register_type!(DacStateRegister);
