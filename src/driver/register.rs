@@ -250,6 +250,12 @@ impl <T: PortIo> RegisterHandler<T> {
     );
 
     crt_register!(
+        read_end_horizontal_blanking,
+        write_end_horizontal_blanking,
+        EndHorizontalBlankingRegister,
+    );
+
+    crt_register!(
         read_start_horizontal_retrace_pulse,
         write_start_horizontal_retrace_pulse,
         StartHorizontalRetracePulseRegister,
