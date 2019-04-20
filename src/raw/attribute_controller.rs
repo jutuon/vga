@@ -1,5 +1,13 @@
 use bitflags::bitflags;
 
+pub trait AttributeRegisterMarker {}
+
+macro_rules! impl_marker_trait {
+    ($name:ident) => {
+        impl AttributeRegisterMarker for $name {}
+    };
+}
+
 pub const WRITE_ADDRESS: u16 = 0x03C0;
 pub const READ_ADDRESS: u16 = 0x03C1;
 

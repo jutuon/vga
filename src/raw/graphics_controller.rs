@@ -5,6 +5,14 @@ use core::convert::TryFrom;
 
 use super::{RegisterField};
 
+pub trait GraphicsControllerRegisterMarker {}
+
+macro_rules! impl_marker_trait {
+    ($name:ident) => {
+        impl GraphicsControllerRegisterMarker for $name {}
+    };
+}
+
 pub const ADDRESS_REGISTER: u16 = 0x03CE;
 pub const DATA_REGISTER: u16 = 0x03CF;
 

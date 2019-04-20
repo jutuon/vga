@@ -45,9 +45,11 @@ macro_rules! declare_register_type {
             $name
         );
 
-        impl $name {
-            pub const INDEX: u8 = $index;
+        impl $crate::raw::RegisterWithIndex for $name {
+            const INDEX: u8 = $index;
         }
+
+        impl_marker_trait!($name);
     };
     ( $(#[doc=$text:literal] )* $name:ident, $flags_type:ident, $index:literal $(,)?) => {
         declare_register_type!(
@@ -58,9 +60,11 @@ macro_rules! declare_register_type {
             $flags_type,
         );
 
-        impl $name {
-            pub const INDEX: u8 = $index;
+        impl $crate::raw::RegisterWithIndex for $name {
+            const INDEX: u8 = $index;
         }
+
+        impl_marker_trait!($name);
     };
 
 }
@@ -275,6 +279,10 @@ pub trait RegisterField: core::convert::TryFrom<u8> + Into<u8>  {
         remove_bits(register, Self::ALL_BITS_ON_MASK);
         *register |= self.into();
     }
+}
+
+pub trait RegisterWithIndex {
+    const INDEX: u8;
 }
 
 

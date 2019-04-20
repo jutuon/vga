@@ -6,6 +6,14 @@ use core::convert::TryFrom;
 
 use super::{RegisterField, remove_bits, BitIndexU16, BitIndexU8, extract_bit_from_u8, extract_bit_from_u16};
 
+pub trait CrtControllerRegisterMarker {}
+
+macro_rules! impl_marker_trait {
+    ($name:ident) => {
+        impl CrtControllerRegisterMarker for $name {}
+    };
+}
+
 pub const ADDRESS_REGISTER_IO_SELECT_OFF: u16 = 0x03B4;
 pub const ADDRESS_REGISTER_IO_SELECT_ON: u16 = 0x03D4;
 pub const DATA_REGISTER_IO_SELECT_OFF: u16 = 0x03B5;

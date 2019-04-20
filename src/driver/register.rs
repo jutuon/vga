@@ -2,6 +2,7 @@
 use crate::io::PortIo;
 
 use crate::raw::{
+    RegisterWithIndex,
     general::*,
     sequencer::*,
     crt_controller::*,

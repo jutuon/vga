@@ -7,6 +7,14 @@ use core::convert::TryFrom;
 
 use super::{RegisterField};
 
+pub trait SequencerRegisterMarker {}
+
+macro_rules! impl_marker_trait {
+    ($name:ident) => {
+        impl SequencerRegisterMarker for $name {}
+    };
+}
+
 pub const ADDRESS_REGISTER: u16 = 0x03C4;
 pub const DATA_REGISTER: u16 = 0x03C5;
 
