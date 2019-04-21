@@ -64,7 +64,7 @@ impl PaletteDataRegister {
     );
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct PaletteColor{
     pub(crate) r: PaletteDataRegister,
     pub(crate) g: PaletteDataRegister,
