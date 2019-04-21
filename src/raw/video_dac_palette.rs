@@ -82,11 +82,12 @@ impl Default for PaletteColor {
 }
 
 impl PaletteColor {
-    pub fn new(r: u8, g: u8, b: u8) {
+    pub fn new(r: u8, g: u8, b: u8) -> Self {
         let mut value = Self::default();
         value.set_r(r);
         value.set_g(g);
         value.set_b(b);
+        value
     }
 
     /// A 6-bit value.
