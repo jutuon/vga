@@ -755,11 +755,11 @@ impl <'a, T: PortIo, U: Register> ReadWrite<'a, T, U> {
         }
     }
 
-    pub fn write(&mut self) {
-        (self.write_function)(self)
+    pub fn write(mut self) {
+        (self.write_function)(&mut self)
     }
 
-    pub fn modify<V: FnMut(&mut U) -> &mut U>(&mut self, mut function: V) -> &mut Self {
+    pub fn modify<V: FnMut(&mut U) -> &mut U>(mut self, mut function: V) -> Self {
         (function)(&mut self.register_data);
         self
     }
