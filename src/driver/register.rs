@@ -554,7 +554,7 @@ impl <T: PortIo> RegisterHandler<T> {
         let index = PaletteAddressReadModeRegister::new(start_from_index);
         self.write_palette_address_read_mode(index);
 
-        let iterator = data.iter_mut().take((u8::max_value() - start_from_index + 1) as usize);
+        let iterator = data.iter_mut().take((u8::max_value() as u16 - start_from_index as u16 + 1) as usize);
 
         for color in iterator {
            let r = self.read_palette_data();
@@ -571,7 +571,7 @@ impl <T: PortIo> RegisterHandler<T> {
         let index = PaletteAddressWriteModeRegister::new(start_from_index);
         self.write_palette_address_write_mode(index);
 
-        let iterator = data.iter().take((u8::max_value() - start_from_index + 1) as usize);
+        let iterator = data.iter().take((u8::max_value() as u16 - start_from_index as u16 + 1) as usize);
         for color in iterator {
            self.write_palette_data(color.r);
            self.write_palette_data(color.g);
