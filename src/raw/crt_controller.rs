@@ -337,8 +337,9 @@ impl CursorLocationHighRegister {
         (self.0 as u16) << 8
     }
 
-    pub fn set_cursor_location_bits_from_8_to_15(&mut self, value: u16) {
+    pub fn set_cursor_location_bits_from_8_to_15(&mut self, value: u16) -> &mut Self {
         self.0 = (value >> 8) as u8;
+        self
     }
 }
 

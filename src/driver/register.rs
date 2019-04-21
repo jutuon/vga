@@ -595,7 +595,7 @@ impl <T: PortIo> CrtControllerValues<'_, T> {
     /// A 6-bit value.
     pub fn set_end_horizontal_blanking(&mut self, value: u8) {
         self.0.end_horizontal_retrace().modify(|r| r.set_end_blanking_bit_5(value)).write();
-        self.0.end_horizontal_blanking().modify(|r| r.set_end_blanking_bits_from_0_to_4(value));
+        self.0.end_horizontal_blanking().modify(|r| r.set_end_blanking_bits_from_0_to_4(value)).write();
     }
 
     /// A 10-bit value.
@@ -622,6 +622,68 @@ impl <T: PortIo> CrtControllerValues<'_, T> {
         self.0.maximum_scan_line().modify(|r| r.set_line_compare_bit_9(value)).write();
         self.0.overflow().modify(|r| r.set_line_compare_bit_8(value)).write();
         self.0.line_compare().modify(|r| r.set_line_compare_target_bits_from_0_to_7(value)).write();
+    }
+
+    /// A 10-bit value.
+    pub fn start_vertical_blanking(&mut self) -> u16 {
+        self.0.maximum_scan_line().start_vertical_blanking_bit_9() |
+        self.0.overflow().vertical_blanking_start_bit_8() |
+        self.0.start_vertical_blanking().start_vertical_blanking_bits_from_0_to_7()
+    }
+
+    /// A 10-bit value.
+    pub fn set_start_vertical_blanking(&mut self, value: u16) {
+        self.0.maximum_scan_line().modify(|r| r.set_start_vertical_blanking_bit_9(value)).write();
+        self.0.overflow().modify(|r| r.set_vertical_blanking_start_bit_8(value)).write();
+        self.0.start_vertical_blanking().modify(|r| r.set_start_vertical_blanking_bits_from_0_to_7(value)).write();
+    }
+
+    /// A 16-bit value.
+    pub fn start_address(&mut self) -> u16 {
+        self.0.start_address_high().start_address_bits_from_8_to_15() |
+        self.0.start_address_low().start_address_bits_from_0_to_7()
+    }
+
+    /// A 16-bit value.
+    pub fn set_start_address(&mut self, value: u16) {
+        self.0.start_address_high().modify(|r| r.set_start_address_bits_from_8_to_15(value)).write();
+        self.0.start_address_low().modify(|r| r.set_start_address_bits_from_0_to_7(value)).write();
+    }
+
+    /// A 16-bit value.
+    pub fn cursor_location(&mut self) -> u16 {
+        self.0.cursor_location_high().cursor_location_bits_from_8_to_15() |
+        self.0.cursor_location_low().cursor_location_bits_from_0_to_7()
+    }
+
+    /// A 16-bit value.
+    pub fn set_cursor_location(&mut self, value: u16) {
+        self.0.cursor_location_high().modify(|r| r.set_cursor_location_bits_from_8_to_15(value)).write();
+        self.0.cursor_location_low().modify(|r| r.set_cursor_location_bits_from_0_to_7(value)).write();
+    }
+
+    /// A 10-bit value.
+    pub fn vertical_retrace_start(&mut self) -> u16 {
+        self.0.vertical_retrace_start().vertical_retrace_start_bits_from_0_to_7() |
+        self.0.overflow().vertical_retrace_start_bits_8_and_9()
+    }
+
+    /// A 10-bit value.
+    pub fn set_vertical_retrace_start(&mut self, value: u16) {
+        self.0.vertical_retrace_start().modify(|r| r.set_vertical_retrace_start_bits_from_0_to_7(value)).write();
+        self.0.overflow().modify(|r| r.set_vertical_retrace_start_bits_8_and_9(value)).write();
+    }
+
+    /// A 10-bit value.
+    pub fn vertical_display_enable_end(&mut self) -> u16 {
+        self.0.vertical_display_enable_end().vertical_display_enable_end_bits_from_0_to_7() |
+        self.0.overflow().vertical_display_enable_end_bits_8_and_9()
+    }
+
+    /// A 10-bit value.
+    pub fn set_vertical_display_enable_end(&mut self, value: u16) {
+        self.0.vertical_display_enable_end().modify(|r| r.set_vertical_display_enable_end_bits_from_0_to_7(value)).write();
+        self.0.overflow().modify(|r| r.set_vertical_display_enable_end_bits_8_and_9(value)).write();
     }
 }
 
