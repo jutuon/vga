@@ -70,6 +70,10 @@ macro_rules! crt_register {
 }
 
 impl <T: PortIo> RegisterHandler<T> {
+    pub fn new(port_io: T) -> Self {
+        RegisterHandler(port_io)
+    }
+
     pub fn io_select_address_enabled(&mut self) -> bool {
         self.read_miscellaneous_output().flags().contains(MiscellaneousOutputRegisterFlags::IO_ADDRESS_SELECT)
     }
