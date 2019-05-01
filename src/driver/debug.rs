@@ -6,6 +6,7 @@ use crate::{
         attribute_controller::*,
         crt_controller::*,
         graphics_controller::*,
+        sequencer::*,
     },
     driver::register::*,
     io::*,
@@ -210,6 +211,35 @@ impl GraphicsControllerDebug {
             addressing_assignment,
             read_map_select: r.map_select().map_select(),
             set_slash_reset: r.set_slash_reset().flags(),
+        }
+    }
+}
+
+
+#[derive(Debug)]
+pub struct SequencerDebug {
+    character_map_a_select: CharacterMapASelect,
+    character_map_b_select: CharacterMapBSelect,
+    f0: ClockingModeRegisterFlags,
+    f1: MapMaskRegisterFlags,
+    f2: MemoryModeRegisterFlags,
+    f3: ResetRegisterFlags,
+}
+
+impl SequencerDebug {
+    pub fn read_registers<T: PortIo>(r: &mut RegisterHandler<T>) -> Self {
+        let (character_map_a_select, character_map_b_select) = {
+            let r = r.character_map_select();
+            (r.character_map_a_select(), r.character_map_b_select())
+        };
+
+        Self {
+            character_map_a_select,
+            character_map_b_select,
+            f0: r.clocking_mode().flags(),
+            f1: r.map_mask().flags(),
+            f2: r.memory_mode().flags(),
+            f3: r.reset().flags(),
         }
     }
 }
