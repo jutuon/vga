@@ -5,6 +5,7 @@ use crate::{
         general::*,
         attribute_controller::*,
         crt_controller::*,
+        graphics_controller::*,
     },
     driver::register::*,
     io::*,
@@ -158,6 +159,57 @@ impl CrtControllerDebug {
             vertical_retrace_end,
             vertical_retrace_start: r.crt().vertical_retrace_start(),
             vertical_total: r.crt().vertical_total(),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct GraphicsControllerDebug {
+    bit_mask: u8,
+    color_compare: MapFlags,
+    color_do_not_care: MapFlags,
+    function_select: DataFunction,
+    rotate_count: u8,
+    enable_set_slash_reset: MapFlags,
+    f0: GraphicsModeRegisterFlags,
+    write_mode: WriteMode,
+    f1: MiscellaneousRegisterFlags,
+    addressing_assignment: AddressingAssignment,
+    read_map_select: MapSelect,
+    set_slash_reset: MapFlags,
+}
+
+
+impl GraphicsControllerDebug {
+    pub fn read_registers<T: PortIo>(r: &mut RegisterHandler<T>) -> Self {
+        let (function_select, rotate_count) = {
+            let r = r.data_rotate();
+            (r.function_select(), r.rotate_count())
+        };
+
+        let (f0, write_mode) = {
+            let r = r.graphics_mode();
+            (r.flags(), r.write_mode())
+        };
+
+        let (f1, addressing_assignment) = {
+            let r = r.miscellaneous();
+            (r.flags(), r.addressing_assignment())
+        };
+
+        Self {
+            bit_mask: r.bit_mask().bit_mask(),
+            color_compare: r.color_compare().flags(),
+            color_do_not_care: r.color_do_not_care().flags(),
+            function_select,
+            rotate_count,
+            enable_set_slash_reset: r.enable_set_slash_reset().flags(),
+            f0,
+            write_mode,
+            f1,
+            addressing_assignment,
+            read_map_select: r.map_select().map_select(),
+            set_slash_reset: r.set_slash_reset().flags(),
         }
     }
 }
