@@ -159,3 +159,12 @@ macro_rules! impl_port_io_available {
         }
     };
 }
+
+
+pub const VIDEO_RAM_START_ADDRESS: usize = 0xA0000;
+pub const VIDEO_RAM_AREA_SIZE: usize = 0xBFFFF - VIDEO_RAM_START_ADDRESS;
+
+pub trait MemoryMappedIo<'a> {
+    fn video_ram_u8(&self) -> &'a [u8];
+    fn video_ram_u8_mut(&mut self) -> &'a mut [u8];
+}
