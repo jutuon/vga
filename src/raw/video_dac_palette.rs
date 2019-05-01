@@ -1,7 +1,10 @@
 
 use enum_tryfrom_derive::TryFromPrimitive;
 
-use core::convert::TryFrom;
+use core::{
+    convert::TryFrom,
+    fmt,
+};
 
 use super::{UnknownValue, RegisterField, Register};
 
@@ -64,11 +67,23 @@ impl PaletteDataRegister {
     );
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 pub struct PaletteColor{
     pub(crate) r: PaletteDataRegister,
     pub(crate) g: PaletteDataRegister,
     pub(crate) b: PaletteDataRegister,
+}
+
+impl fmt::Debug for PaletteColor {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "({},{},{})",
+            self.r.color_value(),
+            self.g.color_value(),
+            self.b.color_value()
+        )
+    }
 }
 
 impl Default for PaletteColor {

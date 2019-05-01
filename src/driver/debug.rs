@@ -1,4 +1,6 @@
 
+use core::fmt;
+
 use crate::{
     raw::{
         UnknownValue,
@@ -7,6 +9,7 @@ use crate::{
         crt_controller::*,
         graphics_controller::*,
         sequencer::*,
+        video_dac_palette::*,
     },
     driver::register::*,
     io::*,
@@ -240,6 +243,32 @@ impl SequencerDebug {
             f1: r.map_mask().flags(),
             f2: r.memory_mode().flags(),
             f3: r.reset().flags(),
+        }
+    }
+}
+
+pub struct PaletteColorDebug([PaletteColor; 256]);
+
+impl fmt::Debug for PaletteColorDebug {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        self.0[..].fmt(formatter)
+    }
+}
+
+#[derive(Debug)]
+pub struct VideoDacPaletteDebug {
+    palette: PaletteColorDebug,
+    pel_mask: u8,
+}
+
+impl VideoDacPaletteDebug {
+    pub fn read_registers<T: PortIo>(r: &mut RegisterHandler<T>) -> Self {
+        let mut palette = [PaletteColor::default(); 256];
+        r.read_dac_palette(0, &mut palette);
+
+        Self {
+            palette: PaletteColorDebug(palette),
+            pel_mask: r.read_pel_mask().pel_mask(),
         }
     }
 }
