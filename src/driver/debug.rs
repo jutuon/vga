@@ -4,6 +4,7 @@ use core::fmt;
 use crate::{
     raw::{
         UnknownValue,
+        RegisterWithFlags,
         general::*,
         attribute_controller::*,
         crt_controller::*,

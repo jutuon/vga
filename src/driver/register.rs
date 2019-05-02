@@ -3,6 +3,7 @@ use crate::io::PortIo;
 
 use crate::raw::{
     RegisterWithIndex,
+    RegisterWithFlags,
     Register,
     general::*,
     sequencer::*,
@@ -765,6 +766,15 @@ impl <'a, T: PortIo, U: Register> ReadWrite<'a, T, U> {
 
     pub fn modify<V: FnMut(&mut U) -> &mut U>(mut self, mut function: V) -> Self {
         (function)(&mut self.register_data);
+        self
+    }
+}
+
+impl <'a, T: PortIo, U: Register + RegisterWithFlags> ReadWrite<'a, T, U> {
+    pub fn modify_flags<V: FnMut(&mut <U as RegisterWithFlags>::Flags)>(mut self, mut function: V) -> Self {
+        let mut f = self.register_data.flags();
+        (function)(&mut f);
+        self.register_data.set_flags(f);
         self
     }
 }

@@ -26,12 +26,14 @@ macro_rules! declare_register_type {
             $name
         );
 
-        impl $name {
-            pub fn flags(&self) -> $flags_type {
+        impl $crate::raw::RegisterWithFlags for $name {
+            type Flags = $flags_type;
+
+            fn flags(&self) -> Self::Flags {
                 $flags_type::from_bits_truncate(self.0)
             }
 
-            pub fn set_flags(&mut self, value: $flags_type) -> &mut Self {
+            fn set_flags(&mut self, value: Self::Flags) -> &mut Self {
                 crate::raw::remove_bits(&mut self.0, $flags_type::all().bits());
                 self.0 |= value.bits();
                 self
@@ -290,6 +292,13 @@ pub trait RegisterField: core::convert::TryFrom<u8> + Into<u8>  {
 pub trait Register {
     fn from_register_value(value: u8) -> Self;
     fn value(&self) -> u8;
+}
+
+pub trait RegisterWithFlags {
+    type Flags;
+
+    fn flags(&self) -> Self::Flags;
+    fn set_flags(&mut self, value: Self::Flags) -> &mut Self;
 }
 
 pub trait RegisterWithIndex: Register {
