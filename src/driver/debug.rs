@@ -28,7 +28,7 @@ pub struct GeneralDebug {
 
 impl GeneralDebug {
     pub fn read_registers<T: PortIo>(r: &mut RegisterHandler<T>) -> Self {
-        let r0 = r.read_miscellaneous_output();
+        let r0 = r.miscellaneous_output();
 
         Self {
             f0: r.read_input_status_0().flags(),
@@ -36,7 +36,7 @@ impl GeneralDebug {
             f2: r0.flags(),
             vertical_size: r0.vertical_size(),
             clock_select: r0.clock_select(),
-            video_subsystem_enable: r.read_video_subsystem_enable().video_subsystem_enable(),
+            video_subsystem_enable: r.video_subsystem_enable().video_subsystem_enable(),
         }
     }
 }
