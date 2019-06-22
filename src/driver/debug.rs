@@ -31,11 +31,11 @@ impl GeneralDebug {
         let r0 = r.miscellaneous_output();
 
         Self {
-            f0: r.read_input_status_0().flags(),
-            f1: r.read_input_status_1().flags(),
             f2: r0.flags(),
             vertical_size: r0.vertical_size(),
             clock_select: r0.clock_select(),
+            f0: r.read_input_status_0().flags(),
+            f1: r.read_input_status_1().flags(),
             video_subsystem_enable: r.video_subsystem_enable().video_subsystem_enable(),
         }
     }
