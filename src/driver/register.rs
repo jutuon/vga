@@ -465,7 +465,7 @@ macro_rules! attribute_register {
 impl <T: PortIo> RegisterHandler<T> {
     pub fn read_attribute_address(&mut self) -> AttributeAddressRegister {
         self.read_input_status_1();
-        let raw = self.0.read(port!(T::AttributePorts::READ_ADDRESS));
+        let raw = self.0.read(port!(T::AttributePorts::WRITE_ADDRESS));
         AttributeAddressRegister::from_register_value(raw)
     }
 
