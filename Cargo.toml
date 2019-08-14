@@ -6,6 +6,3 @@ edition = "2018"
 publish = false
 
 [dependencies]
-bitflags = "1.0"
-enum-tryfrom = { version = "0.2.1", default-features = false }
-enum-tryfrom-derive = "0.2.1"

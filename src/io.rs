@@ -1,163 +1,8 @@
 
-macro_rules! port_consts {
-    ($port_module:ident, $( $port:ident ),+ $(,)? ) => {
-        $( const $port: Self = convert_u16_to_vga_port_id(crate::raw::$port_module::$port); )*
-    };
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct VgaPortId(u16);
-
-impl VgaPortId {
-    pub fn value(&self) -> u16 {
-        self.0
-    }
-}
-
-const fn convert_u16_to_vga_port_id(value: u16) -> VgaPortId {
-    VgaPortId(value)
-}
-
-impl AttributePorts for VgaPortId {
-    port_consts!(
-        attribute_controller,
-        READ_ADDRESS,
-        WRITE_ADDRESS,
-    );
-}
-
-impl CrtPorts for VgaPortId {
-    port_consts!(
-        crt_controller,
-        ADDRESS_REGISTER_IO_SELECT_OFF,
-        ADDRESS_REGISTER_IO_SELECT_ON,
-        DATA_REGISTER_IO_SELECT_OFF,
-        DATA_REGISTER_IO_SELECT_ON,
-    );
-}
-
-impl GeneralPorts for VgaPortId {
-    port_consts!(
-        general,
-        READ_MISCELLANEOUS_OUTPUT,
-        READ_INPUT_STATUS_0,
-        READ_INPUT_STATUS_1_IO_SELECT_OFF,
-        READ_INPUT_STATUS_1_IO_SELECT_ON,
-        READ_FEATURE_CONTROL_REGISTER,
-        READ_VIDEO_SUBSYSTEM_ENABLE_REGISTER,
-        WRITE_MISCELLANEOUS_OUTPUT,
-        WRITE_FEATURE_CONTROL_REGISTER_IO_SELECT_OFF,
-        WRITE_FEATURE_CONTROL_REGISTER_IO_SELECT_ON,
-        WRITE_VIDEO_SUBSYSTEM_ENABLE_REGISTER,
-    );
-}
-
-impl GraphicsPorts for VgaPortId {
-    port_consts!(
-        graphics_controller,
-        ADDRESS_REGISTER,
-        DATA_REGISTER,
-    );
-}
-
-impl SequencerPorts for VgaPortId {
-    port_consts!(
-        sequencer,
-        ADDRESS_REGISTER,
-        DATA_REGISTER,
-    );
-}
-
-impl DacPorts for VgaPortId {
-    port_consts!(
-        video_dac_palette,
-        PALETTE_ADDRESS_WRITE_MODE,
-        PALETTE_ADDRESS_READ_MODE,
-        DAC_STATE,
-        PALETTE_DATA,
-        PEL_MASK,
-    );
-}
-
-pub trait AttributePorts: Copy {
-    const WRITE_ADDRESS: Self;
-    const READ_ADDRESS: Self;
-}
-
-pub trait CrtPorts: Copy {
-    const ADDRESS_REGISTER_IO_SELECT_OFF: Self;
-    const ADDRESS_REGISTER_IO_SELECT_ON: Self;
-    const DATA_REGISTER_IO_SELECT_OFF: Self;
-    const DATA_REGISTER_IO_SELECT_ON: Self;
-}
-
-pub trait GeneralPorts: Copy {
-    const READ_MISCELLANEOUS_OUTPUT: Self;
-    const READ_INPUT_STATUS_0: Self;
-    const READ_INPUT_STATUS_1_IO_SELECT_OFF: Self;
-    const READ_INPUT_STATUS_1_IO_SELECT_ON: Self;
-    const READ_FEATURE_CONTROL_REGISTER: Self;
-    const READ_VIDEO_SUBSYSTEM_ENABLE_REGISTER: Self;
-
-    const WRITE_MISCELLANEOUS_OUTPUT: Self;
-    const WRITE_FEATURE_CONTROL_REGISTER_IO_SELECT_OFF: Self;
-    const WRITE_FEATURE_CONTROL_REGISTER_IO_SELECT_ON: Self;
-    const WRITE_VIDEO_SUBSYSTEM_ENABLE_REGISTER: Self;
-}
-
-pub trait GraphicsPorts: Copy {
-    const ADDRESS_REGISTER: Self;
-    const DATA_REGISTER: Self;
-}
-
-pub trait SequencerPorts: Copy {
-    const ADDRESS_REGISTER: Self;
-    const DATA_REGISTER: Self;
-}
-
-pub trait DacPorts: Copy {
-    const PALETTE_ADDRESS_WRITE_MODE: Self;
-    const PALETTE_ADDRESS_READ_MODE: Self;
-    const DAC_STATE: Self;
-    const PALETTE_DATA: Self;
-    const PEL_MASK: Self;
-}
 
 pub trait PortIo {
-    type PortId:
-        Copy +
-        AttributePorts +
-        CrtPorts +
-        GeneralPorts +
-        GraphicsPorts +
-        SequencerPorts +
-        DacPorts;
-
-    fn read(&mut self, port: Self::PortId) -> u8;
-    fn write(&mut self, port: Self::PortId, data: u8);
-}
-
-/// You should only use this trait for debugging purposes.
-pub trait PortIoAvailable<T: PortIo> {
-    fn port_io_mut(&mut self) -> &mut T;
-}
-
-macro_rules! port {
-    ($port_io_type:ident :: $port_trait:ident :: $port_name:ident) => {
-        {
-            <<$port_io_type as $crate::io::PortIo>::PortId as $crate::io::$port_trait>::$port_name
-        }
-    };
-}
-
-macro_rules! impl_port_io_available {
-    (<T: PortIo> $type:ty) => {
-        impl<T: PortIo> crate::io::PortIoAvailable<T> for $type {
-            fn port_io_mut(&mut self) -> &mut T {
-                &mut self.0
-            }
-        }
-    };
+    fn read(&mut self, port: u16) -> u8;
+    fn write(&mut self, port: u16, data: u8);
 }
 
 
@@ -167,4 +12,208 @@ pub const VIDEO_RAM_AREA_SIZE: usize = 0xBFFFF - VIDEO_RAM_START_ADDRESS;
 pub trait MemoryMappedIo<'a> {
     fn video_ram_u8(&self) -> &'a [u8];
     fn video_ram_u8_mut(&mut self) -> &'a mut [u8];
+}
+
+
+use crate::raw::generated::{
+    register_trait::{
+        RegisterAbsIoR,
+        RegisterAbsIoW,
+        RegisterRelIoR,
+        RegisterRelIoW,
+        RegisterIndexIoR,
+        RegisterIndexIoW,
+        LocationAbsW,
+    },
+    general::{
+        GeneralRegisters,
+        MSR,
+        GeneralGroup,
+    },
+    attribute_controller::{
+        AttributeControllerGroup,
+        ARX,
+    },
+    crt_controller::{
+        CrtControllerGroup,
+        CRX,
+    },
+    graphics_controller::{
+        GraphicsControllerGroup,
+        GRX,
+    },
+    sequencer::{
+        SequencerGroup,
+        SRX,
+    },
+    color_palette::{
+        ColorPaletteGroup,
+    },
+};
+
+macro_rules! io_handler_type {
+    (pub struct $io_handler_type:tt) => {
+        pub struct $io_handler_type<'a, T: PortIo> {
+            io: &'a mut T,
+        }
+
+        impl <'a, T: PortIo> $io_handler_type<'a, T> {
+            pub fn new(io: &'a mut T) -> Self {
+                Self {
+                    io
+                }
+            }
+        }
+    };
+}
+
+macro_rules! impl_abs_address_io {
+    (r, $io_handler_type:tt, $register_group:ty ) => {
+        impl <'a, T: PortIo> RegisterAbsIoR<$register_group, u8> for $io_handler_type<'a, T> {
+            fn read(&mut self, address: u16) -> u8 {
+                self.io.read(address)
+            }
+        }
+    };
+
+    (w, $io_handler_type:tt, $register_group:ty ) => {
+        impl <'a, T: PortIo> RegisterAbsIoW<$register_group, u8> for $io_handler_type<'a, T> {
+            fn write(&mut self, address: u16, data: u8) {
+                self.io.write(address, data)
+            }
+        }
+    };
+
+    (rw, $io_handler_type:tt, $register_group:ty ) => {
+        impl_abs_address_io!(r, $io_handler_type, $register_group);
+        impl_abs_address_io!(w, $io_handler_type, $register_group);
+    };
+}
+
+macro_rules! impl_rel_address_io {
+    (r, $io_handler_type:tt, $register_group:ty ) => {
+        impl <'a, T: PortIo> RegisterRelIoR<$register_group, u8> for $io_handler_type<'a, T> {
+            fn read(&mut self, mut address: u16) -> u8 {
+                if MSR::new(self).read().io_address_select().bit_is_set() {
+                    address += 0x20
+                }
+
+                self.io.read(address)
+            }
+        }
+    };
+
+    (w, $io_handler_type:tt, $register_group:ty ) => {
+        impl <'a, T: PortIo> RegisterRelIoW<$register_group, u8> for $io_handler_type<'a, T> {
+            fn write(&mut self, mut address: u16, data: u8) {
+                if MSR::new(self).read().io_address_select().bit_is_set() {
+                    address += 0x20
+                }
+
+                self.io.write(address, data)
+            }
+        }
+    };
+
+    (rw, $io_handler_type:tt, $register_group:ty ) => {
+        impl_rel_address_io!(r, $io_handler_type, $register_group);
+        impl_rel_address_io!(w, $io_handler_type, $register_group);
+    };
+}
+
+io_handler_type!(pub struct GeneralIo);
+impl_abs_address_io!(rw, GeneralIo, GeneralGroup);
+impl_rel_address_io!(rw, GeneralIo, GeneralGroup);
+
+io_handler_type!(pub struct AttributeControllerIo);
+
+impl <'a, T: PortIo> RegisterAbsIoR<AttributeControllerGroup, u8> for AttributeControllerIo<'a, T> {
+    fn read(&mut self, address: u16) -> u8 {
+        self.io.read(address)
+    }
+}
+
+impl <'a, T: PortIo> RegisterAbsIoW<AttributeControllerGroup, u8> for AttributeControllerIo<'a, T> {
+    fn write(&mut self, address: u16, data: u8) {
+        // Reset flip-flop
+        GeneralRegisters::new(GeneralIo::new(self.io)).st01().read();
+
+        self.io.write(address, data);
+    }
+}
+
+impl <'a, T: PortIo> RegisterIndexIoR<AttributeControllerGroup, u8> for AttributeControllerIo<'a, T> {
+    fn read(&mut self, index: u8) -> u8 {
+        ARX::new(self).modify(|_, w| w.attribute_controller_register_index().bits(index));
+        self.io.read(0x3C1)
+    }
+}
+
+impl <'a, T: PortIo> RegisterIndexIoW<AttributeControllerGroup, u8> for AttributeControllerIo<'a, T> {
+    fn write(&mut self, index: u8, data: u8) {
+        ARX::new(self).modify(|_, w| w.attribute_controller_register_index().bits(index));
+        self.io.write(ARX::<Self>::ABS_ADDRESS_W, data);
+    }
+}
+
+io_handler_type!(pub struct ColorPaletteIo);
+impl_abs_address_io!(rw, ColorPaletteIo, ColorPaletteGroup);
+
+io_handler_type!(pub struct CrtControllerIo);
+impl_abs_address_io!(rw, CrtControllerIo, GeneralGroup);
+impl_rel_address_io!(rw, CrtControllerIo, CrtControllerGroup);
+
+/// Data port when IO Address Select bit from MSR register is clear.
+const CRT_CONTROLLER_DATA_PORT: u16 = 0x3B5;
+
+impl <'a, T: PortIo> RegisterIndexIoR<CrtControllerGroup, u8> for CrtControllerIo<'a, T> {
+    fn read(&mut self, index: u8) -> u8 {
+        CRX::new(self).modify(|_, w| w.crt_controller_index().bits(index));
+        <Self as RegisterRelIoR<CrtControllerGroup, u8>>::read(self, CRT_CONTROLLER_DATA_PORT)
+    }
+}
+
+impl <'a, T: PortIo> RegisterIndexIoW<CrtControllerGroup, u8> for CrtControllerIo<'a, T> {
+    fn write(&mut self, index: u8, data: u8) {
+        CRX::new(self).modify(|_, w| w.crt_controller_index().bits(index));
+        <Self as RegisterRelIoW<CrtControllerGroup, u8>>::write(self, CRT_CONTROLLER_DATA_PORT, data);
+    }
+}
+
+io_handler_type!(pub struct GraphicsControllerIo);
+impl_abs_address_io!(rw, GraphicsControllerIo, GraphicsControllerGroup);
+
+const GRAPHICS_CONTROLLER_DATA_PORT: u16 = 0x3CF;
+
+impl <'a, T: PortIo> RegisterIndexIoR<GraphicsControllerGroup, u8> for GraphicsControllerIo<'a, T> {
+    fn read(&mut self, index: u8) -> u8 {
+        GRX::new(self).modify(|_, w| w.graphics_controller_register_index().bits(index));
+        self.io.read(GRAPHICS_CONTROLLER_DATA_PORT)
+    }
+}
+
+impl <'a, T: PortIo> RegisterIndexIoW<GraphicsControllerGroup, u8> for GraphicsControllerIo<'a, T> {
+    fn write(&mut self, index: u8, data: u8) {
+        GRX::new(self).modify(|_, w| w.graphics_controller_register_index().bits(index));
+        self.io.write(GRAPHICS_CONTROLLER_DATA_PORT, data);
+    }
+}
+
+io_handler_type!(pub struct SequencerIo);
+impl_abs_address_io!(rw, SequencerIo, SequencerGroup);
+
+const SEQUENCER_DATA_PORT: u16 = 0x3C5;
+
+impl <'a, T: PortIo> RegisterIndexIoR<SequencerGroup, u8> for SequencerIo<'a, T> {
+    fn read(&mut self, index: u8) -> u8 {
+        SRX::new(self).modify(|_, w| w.sequencer_index().bits(index));
+        self.io.read(SEQUENCER_DATA_PORT)
+    }
+}
+
+impl <'a, T: PortIo> RegisterIndexIoW<SequencerGroup, u8> for SequencerIo<'a, T> {
+    fn write(&mut self, index: u8, data: u8) {
+        SRX::new(self).modify(|_, w| w.sequencer_index().bits(index));
+        self.io.write(SEQUENCER_DATA_PORT, data);
+    }
 }

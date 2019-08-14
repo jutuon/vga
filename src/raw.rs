@@ -1,345 +1,225 @@
 
+pub mod generated;
 
-macro_rules! declare_register_type {
-    ( $(#[doc=$text:literal] )* $name:ident $(,)?) => {
-        $(
-            #[doc=$text]
-        )*
-        #[derive(Debug, Clone, Copy)]
-        pub struct $name(u8);
+use core::fmt;
 
-        impl $crate::raw::Register for $name {
-            fn from_register_value(value: u8) -> Self {
-                $name(value)
-            }
+use self::generated::{
+    general::GeneralRegisters,
+    sequencer::SequencerRegisters,
+    color_palette::{
+        ColorPaletteRegisters,
+        dacdata::PALETTE_DATA_R,
+    },
+    crt_controller::CrtControllerRegisters,
+    attribute_controller::{
+        AttributeControllerRegisters,
+        AttributeControllerGroup,
+        ar00::PALETTE_BITS_R,
+    },
+    register_trait::{
+        RegisterIndexIoR,
+        RegisterIndexIoW,
+    },
+};
 
-            fn value(&self) -> u8 {
-                self.0
-            }
-        }
-    };
-    ( $(#[doc=$text:literal] )* $name:ident, $flags_type:ident $(,)?) => {
-        declare_register_type!(
-            $(
-                #[doc=$text]
-            )*
-            $name
-        );
+use crate::io::{
+    PortIo,
+    GeneralIo,
+    SequencerIo,
+    ColorPaletteIo,
+    CrtControllerIo,
+    AttributeControllerIo,
+};
 
-        impl $crate::raw::RegisterWithFlags for $name {
-            type Flags = $flags_type;
 
-            fn flags(&self) -> Self::Flags {
-                $flags_type::from_bits_truncate(self.0)
-            }
 
-            fn set_flags(&mut self, value: Self::Flags) -> &mut Self {
-                crate::raw::remove_bits(&mut self.0, $flags_type::all().bits());
-                self.0 |= value.bits();
-                self
-            }
-        }
-    };
-    ( $( #[doc=$text:literal] )* $name:ident, $index:literal $(,)?) => {
-        declare_register_type!(
-            $(
-                #[doc=$text]
-            )*
-            $name
-        );
-
-        impl $crate::raw::RegisterWithIndex for $name {
-            const INDEX: u8 = $index;
-        }
-
-        impl_marker_trait!($name);
-    };
-    ( $(#[doc=$text:literal] )* $name:ident, $flags_type:ident, $index:literal $(,)?) => {
-        declare_register_type!(
-            $(
-                #[doc=$text]
-            )*
-            $name,
-            $flags_type,
-        );
-
-        impl $crate::raw::RegisterWithIndex for $name {
-            const INDEX: u8 = $index;
-        }
-
-        impl_marker_trait!($name);
-    };
-
+pub struct VgaRegisters<T: PortIo> {
+    io: T,
 }
 
-macro_rules! impl_from_enum_for_u8 {
-    ($type:ty) => {
-        impl core::convert::From<$type> for u8 {
-            fn from(value: $type) -> u8 {
-                value as u8
-            }
+impl <T: PortIo> VgaRegisters<T> {
+    pub fn new(io: T) -> Self {
+        Self { io }
+    }
+
+    pub fn general(&mut self) -> GeneralRegisters<GeneralIo<'_, T>> {
+        GeneralRegisters::new(GeneralIo::new(&mut self.io))
+    }
+
+    pub fn sequencer(&mut self) -> SequencerRegisters<SequencerIo<'_, T>> {
+        SequencerRegisters::new(SequencerIo::new(&mut self.io))
+    }
+
+    pub fn crt_controller(&mut self) -> CrtControllerRegisters<CrtControllerIo<'_, T>> {
+        CrtControllerRegisters::new(CrtControllerIo::new(&mut self.io))
+    }
+
+    pub fn color_palette(&mut self) -> ColorPaletteRegisters<ColorPaletteIo<'_, T>> {
+        ColorPaletteRegisters::new(ColorPaletteIo::new(&mut self.io))
+    }
+
+    pub fn attribute_controller(&mut self) -> AttributeControllerRegisters<AttributeControllerIo<'_, T>> {
+        AttributeControllerRegisters::new(AttributeControllerIo::new(&mut self.io))
+    }
+
+    /// Read attribute controller palette register.
+    ///
+    /// Clear video enable bit from register `ARX` before
+    /// reading attribute controller palette registers.
+    ///
+    /// There are 16 palette registers in attribute controller.
+    /// This method accepts index values from 0 to 15.
+    pub fn read_attribute_controller_palette_register(&mut self, index: u8) -> Result<PALETTE_BITS_R, InvalidIndex> {
+        if index > 15 {
+            Err(InvalidIndex)
+        } else {
+            let mut io = AttributeControllerIo::new(&mut self.io);
+            let value = RegisterIndexIoR::<AttributeControllerGroup, u8>::read(&mut io, index);
+
+            Ok(PALETTE_BITS_R::from_register_value(value))
         }
-    };
-}
+    }
 
-macro_rules! register_value {
-    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $mask:literal $(,)?) => {
-        $(
-            #[doc=$text]
-        )*
-        pub fn $getter_name(&self) -> u8 {
-            self.0 & $mask
+    /// Write attribute controller palette register.
+    ///
+    /// Clear video enable bit from register `ARX` before
+    /// writing attribute controller palette registers.
+    ///
+    /// There are 16 palette registers in attribute controller.
+    /// This method accepts index values from 0 to 15.
+    ///
+    /// Argument `vga_palette_index` is a 6-bit index to
+    /// VGA color palette.
+    pub fn write_attribute_controller_palette_register(&mut self, index: u8, mut vga_palette_index: u8) -> Result<(), InvalidIndex> {
+        if index > 15 {
+            Err(InvalidIndex)
+        } else {
+            const MASK: u8 = 0b0011_1111;
+            // Remove additional bits from the new palette index.
+            vga_palette_index &= MASK;
+
+            let mut io = AttributeControllerIo::new(&mut self.io);
+            let mut register_value = RegisterIndexIoR::<AttributeControllerGroup, u8>::read(&mut io, index);
+
+            // Remove the current register palette index.
+            register_value &= !MASK;
+            // Set the new palette index to the register value.
+            register_value |= vga_palette_index;
+
+            RegisterIndexIoW::<AttributeControllerGroup, u8>::write(&mut io, index, register_value);
+
+            Ok(())
         }
+    }
 
-        $(
-            #[doc=$text]
-        )*
-        pub fn $setter_name(&mut self, value: u8) -> &mut Self {
-            crate::raw::remove_bits(&mut self.0, $mask);
-            self.0 |= value & $mask;
-            self
+    pub fn read_vga_color_palette_value(&mut self, index: u8) -> PaletteColor {
+        let mut color = [PaletteColor::default()];
+        self.read_vga_color_palette(index, &mut color);
+        let [color] = color;
+        color
+    }
+
+    pub fn write_vga_color_palette_value(&mut self, index: u8, color: PaletteColor) {
+        let color = [color];
+        self.write_vga_color_palette(index, &color);
+    }
+
+    pub fn read_vga_color_palette(&mut self, start_from_index: u8, data: &mut [PaletteColor]) {
+        self.color_palette().dacrx().write(|w| w.palette_read_index().bits(start_from_index));
+
+        let iterator = data.iter_mut().take((u8::max_value() as u16 - start_from_index as u16 + 1) as usize);
+
+        for color in iterator {
+           let r = self.color_palette().dacdata().read().palette_data();
+           let g = self.color_palette().dacdata().read().palette_data();
+           let b = self.color_palette().dacdata().read().palette_data();
+
+           *color = PaletteColor { r, g, b };
         }
-    };
-    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $type:ty $(,)?) => {
-        $(
-            #[doc=$text]
-        )*
-        pub fn $getter_name(&self) -> $type {
-            self.0 as $type
+    }
+
+    pub fn write_vga_color_palette(&mut self, start_from_index: u8, data: &[PaletteColor]) {
+        self.color_palette().dacwx().write(|w| w.palette_write_index().bits(start_from_index));
+
+        let iterator = data.iter().take((u8::max_value() as u16 - start_from_index as u16 + 1) as usize);
+
+        for color in iterator {
+           self.color_palette().dacdata().write(|w| w.palette_data().bits(color.r.bits()));
+           self.color_palette().dacdata().write(|w| w.palette_data().bits(color.g.bits()));
+           self.color_palette().dacdata().write(|w| w.palette_data().bits(color.b.bits()));
         }
-
-        $(
-            #[doc=$text]
-        )*
-        pub fn $setter_name(&mut self, value: $type) -> &mut Self {
-            self.0 = value as u8;
-            self
-        }
-    };
-}
-
-macro_rules! register_boolean {
-    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $mask:literal $(,)?) => {
-        $(
-            #[doc=$text]
-        )*
-        pub fn $getter_name(&self) -> bool {
-            self.0 & $mask == $mask
-        }
-
-        $(
-            #[doc=$text]
-        )*
-        pub fn $setter_name(&mut self, value: bool) -> &mut Self {
-            crate::raw::remove_bits(&mut self.0, $mask);
-            if value {
-                self.0 |= $mask;
-            }
-            self
-        }
-    };
-}
-
-macro_rules! register_enum {
-    ( $( #[doc=$text:literal] )* $getter_name:ident, $setter_name:ident, $type_name:ident $(,)?) => {
-        $(
-            #[doc=$text]
-        )*
-        pub fn $getter_name(&self) -> Result<$type_name, crate::raw::UnknownValue> {
-            $type_name::from_register_value(self.0)
-        }
-
-        $(
-            #[doc=$text]
-        )*
-        pub fn $setter_name(&mut self, value: $type_name) -> &mut Self {
-            value.update_register_value(&mut self.0);
-            self
-        }
-    };
-}
-
-macro_rules! register_enum_with_unwrap {
-    ( $( #[doc=$text:literal] )* $getter_name:tt, $setter_name:tt, $name:tt $(,)? ) => {
-        $(
-            #[doc=$text]
-        )*
-        pub fn $getter_name(&self) -> $name {
-            $name::from_register_value(self.0).unwrap()
-        }
-
-        $(
-            #[doc=$text]
-        )*
-        pub fn $setter_name(&mut self, value: $name) -> &mut Self {
-            value.update_register_value(&mut self.0);
-            self
-        }
-    };
-}
-
-macro_rules! declare_register_enum {
-    (
-        $(
-            #[doc=$enum_text:literal]
-        )*
-        pub enum $name:ident {
-            $(
-                $(
-                    #[doc=$variant_text:literal]
-                )*
-                $variant_name:ident = $value:literal
-            ),+ $(,)?
-        }
-    ) => {
-        #[repr(u8)]
-        #[derive(Debug, TryFromPrimitive)]
-        #[TryFromPrimitiveType="u8"]
-        $(
-            #[doc=$enum_text]
-        )*
-        pub enum $name {
-            $(
-                $(
-                    #[doc=$variant_text]
-                )*
-                $variant_name = $value,
-            )*
-        }
-
-        impl_from_enum_for_u8!($name);
-
-        impl RegisterField for $name {
-            const ALL_BITS_ON_MASK: u8 = $( $value |)* 0;
-        }
-    };
-}
-
-pub mod general;
-pub mod sequencer;
-pub mod crt_controller;
-pub mod graphics_controller;
-pub mod attribute_controller;
-pub mod video_dac_palette;
-
-pub fn extract_bit_from_u8(value: u8, i_old: BitIndexU8, i_new: BitIndexU16) -> u16 {
-    let target_bit_as_first_bit = (value >> i_old as u8) & 1;
-    (target_bit_as_first_bit as u16) << i_new as u16
-}
-
-pub fn extract_bit_from_u16(value: u16, i_old: BitIndexU16, i_new: BitIndexU8) -> u8 {
-    let target_bit_as_first_bit = (value >> i_old as u16) & 1;
-    (target_bit_as_first_bit as u8) << i_new as u8
-}
-
-
-#[repr(u8)]
-#[derive(Debug)]
-pub enum BitIndexU8 {
-    I0 = 0,
-    I1,
-    I2,
-    I3,
-    I4,
-    I5,
-    I6,
-    I7,
-}
-
-#[repr(u8)]
-#[derive(Debug)]
-pub enum BitIndexU16 {
-    I0 = 0,
-    I1,
-    I2,
-    I3,
-    I4,
-    I5,
-    I6,
-    I7,
-    I8,
-    I9,
-    I10,
-    I11,
-    I12,
-    I13,
-    I14,
-    I15,
-}
-
-pub fn remove_bits(register: &mut u8, all_flags_on: u8) {
-    *register &= !all_flags_on;
+    }
 }
 
 #[derive(Debug)]
-pub struct UnknownValue;
+pub struct InvalidIndex;
 
 
-pub trait RegisterField: core::convert::TryFrom<u8> + Into<u8>  {
-    const ALL_BITS_ON_MASK: u8;
+#[derive(Copy, Clone)]
+pub struct PaletteColor{
+    pub(crate) r: PALETTE_DATA_R,
+    pub(crate) g: PALETTE_DATA_R,
+    pub(crate) b: PALETTE_DATA_R,
+}
 
-    fn from_register_value(value: u8) -> Result<Self, UnknownValue> {
-        let value = value & Self::ALL_BITS_ON_MASK;
-        Self::try_from(value).map_err(|_| UnknownValue)
-    }
-
-    fn update_register_value(self, register: &mut u8) {
-        remove_bits(register, Self::ALL_BITS_ON_MASK);
-        *register |= self.into();
+impl fmt::Debug for PaletteColor {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            formatter,
+            "({},{},{})",
+            self.r.bits(),
+            self.g.bits(),
+            self.b.bits()
+        )
     }
 }
 
-pub trait Register {
-    fn from_register_value(value: u8) -> Self;
-    fn value(&self) -> u8;
+impl Default for PaletteColor {
+    fn default() -> Self {
+        Self {
+            r: PALETTE_DATA_R::from_register_value(0),
+            g: PALETTE_DATA_R::from_register_value(0),
+            b: PALETTE_DATA_R::from_register_value(0),
+        }
+    }
 }
 
-pub trait RegisterWithFlags {
-    type Flags;
-
-    fn flags(&self) -> Self::Flags;
-    fn set_flags(&mut self, value: Self::Flags) -> &mut Self;
-}
-
-pub trait RegisterWithIndex: Register {
-    const INDEX: u8;
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn extract_bit_test1() {
-        assert_eq!(extract_bit_from_u8(0b1000_0000, BitIndexU8::I7, BitIndexU16::I0), 1);
-        assert_eq!(extract_bit_from_u8(0b0000_0001, BitIndexU8::I0, BitIndexU16::I0), 1);
-        assert_eq!(extract_bit_from_u8(0b0000_0000, BitIndexU8::I0, BitIndexU16::I0), 0);
-        assert_eq!(extract_bit_from_u8(0b0111_1111, BitIndexU8::I7, BitIndexU16::I0), 0);
-        assert_eq!(extract_bit_from_u8(0b1111_1111, BitIndexU8::I7, BitIndexU16::I0), 1);
-        assert_eq!(extract_bit_from_u8(0b1111_1111, BitIndexU8::I0, BitIndexU16::I0), 1);
+impl PaletteColor {
+    pub fn new(r: u8, g: u8, b: u8) -> Self {
+        let mut value = Self::default();
+        value.set_r(r);
+        value.set_g(g);
+        value.set_b(b);
+        value
     }
 
-    #[test]
-    fn extract_bit_test2() {
-        assert_eq!(extract_bit_from_u8(1, BitIndexU8::I0, BitIndexU16::I0), 1);
-        assert_eq!(extract_bit_from_u8(1, BitIndexU8::I0, BitIndexU16::I15), 0b1000_0000_0000_0000);
+    /// A 6-bit value.
+    pub fn r(&self) -> u8 {
+        self.r.bits()
     }
 
-    #[test]
-    fn extract_bit_test3() {
-        assert_eq!(extract_bit_from_u16(0b1000_0000, BitIndexU16::I7, BitIndexU8::I0), 1);
-        assert_eq!(extract_bit_from_u16(0b0000_0001, BitIndexU16::I0, BitIndexU8::I0), 1);
-        assert_eq!(extract_bit_from_u16(0b0000_0000, BitIndexU16::I0, BitIndexU8::I0), 0);
-        assert_eq!(extract_bit_from_u16(0b0111_1111, BitIndexU16::I7, BitIndexU8::I0), 0);
-        assert_eq!(extract_bit_from_u16(0b1111_1111, BitIndexU16::I7, BitIndexU8::I0), 1);
-        assert_eq!(extract_bit_from_u16(0b1111_1111, BitIndexU16::I0, BitIndexU8::I0), 1);
-        assert_eq!(extract_bit_from_u16(1 << 15, BitIndexU16::I15, BitIndexU8::I0), 1);
+    /// A 6-bit value.
+    pub fn g(&self) -> u8 {
+        self.g.bits()
     }
 
-    #[test]
-    fn extract_bit_test4() {
-        assert_eq!(extract_bit_from_u16(1, BitIndexU16::I0, BitIndexU8::I0), 1);
-        assert_eq!(extract_bit_from_u16(1, BitIndexU16::I0, BitIndexU8::I7), 0b1000_0000);
+    /// A 6-bit value.
+    pub fn b(&self) -> u8 {
+        self.b.bits()
     }
 
+    /// A 6-bit value.
+    pub fn set_r(&mut self, value: u8) {
+        self.r = PALETTE_DATA_R::from_register_value(value);
+    }
+
+    /// A 6-bit value.
+    pub fn set_g(&mut self, value: u8) {
+        self.g = PALETTE_DATA_R::from_register_value(value);
+    }
+
+    /// A 6-bit value.
+    pub fn set_b(&mut self, value: u8) {
+        self.b = PALETTE_DATA_R::from_register_value(value);
+    }
 }
