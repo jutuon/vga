@@ -1,17 +1,50 @@
 
+use core::slice;
+
+use volatile::Volatile;
+
 
 pub trait PortIo {
     fn read(&mut self, port: u16) -> u8;
     fn write(&mut self, port: u16, data: u8);
 }
 
-
 pub const VIDEO_RAM_START_ADDRESS: usize = 0xA0000;
-pub const VIDEO_RAM_AREA_SIZE: usize = 0xBFFFF - VIDEO_RAM_START_ADDRESS;
+pub const VIDEO_RAM_AREA_SIZE_IN_BYTES: usize = 128*1024;
 
-pub trait MemoryMappedIo<'a> {
-    fn video_ram_u8(&self) -> &'a [u8];
-    fn video_ram_u8_mut(&mut self) -> &'a mut [u8];
+/// Access to VGA memory mapped video RAM.
+///
+/// Methods of this trait must return
+/// 128 KiB memory mapped video RAM area as a slice.
+pub trait MemoryMappedIo {
+    fn video_ram(&self) -> &[Volatile<u8>];
+    fn video_ram_mut(&mut self) -> &mut [Volatile<u8>];
+}
+
+pub struct StandardVideoRamLocation {
+    ram: &'static mut [Volatile<u8>],
+}
+
+impl MemoryMappedIo for StandardVideoRamLocation {
+    fn video_ram(&self) -> &[Volatile<u8>] {
+        self.ram
+    }
+
+    fn video_ram_mut(&mut self) -> &mut [Volatile<u8>] {
+        self.ram
+    }
+}
+
+
+impl StandardVideoRamLocation {
+    /// Create handle to VGA video RAM located at address `0xA0000`.
+    pub unsafe fn new() -> Self {
+        let start = VIDEO_RAM_START_ADDRESS as *mut Volatile<u8>;
+
+        Self {
+            ram: slice::from_raw_parts_mut(start, VIDEO_RAM_AREA_SIZE_IN_BYTES),
+        }
+    }
 }
 
 
